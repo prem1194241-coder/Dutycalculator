@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>श्रमिक प्रो (Shramik Pro) - Powered by Anuraj</title>
+
+    <!-- PWA & Mobile Web App Meta -->
+    <meta name="application-name" content="श्रमिक प्रो">
+    <meta name="apple-mobile-web-app-title" content="श्रमिक प्रो">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#3730a3">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="स्मार्ट ड्यूटी, वेतन हिसाब, एडवांस खाता, ओवरटाइम व कंपनी छुट्टी कैलकुलेटर - Powered by Anuraj">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Hind & Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700;800&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS CDN for Instant Excel Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Html2Pdf for Grand PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Hind', 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        input, select, textarea {
+            user-select: auto;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+        .safe-top {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+        .pulse-dot {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse-ring {
+            to {
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            }
+        }
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+        .ad-container {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Dedicated PDF Container Styling - Placed at (0,0) during capture so html2canvas NEVER clips the left side */
+        #pdfMasterWrapper {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 794px;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            z-index: -9999;
+            opacity: 0;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+        .pdf-page-break {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        /* Make native time input clickable across the ENTIRE box including the written time text */
+        .full-click-time {
+            position: relative;
+            cursor: pointer;
+        }
+        .full-click-time::-webkit-calendar-picker-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen antialiased flex flex-col selection:bg-indigo-500 selection:text-white pb-20 md:pb-6">
+
+    <!-- Native App Top App Bar -->
+    <header class="no-print bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 text-white shadow-lg sticky top-0 z-40 border-b border-indigo-500/30 safe-top">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+            <!-- App Brand & Identity -->
+            <div class="flex items-center space-x-2.5 min-w-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-2xl shadow-md text-slate-900 flex items-center justify-center shrink-0">
+                    <i data-lucide="calculator" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <h1 class="text-base sm:text-xl font-black tracking-tight truncate">श्रमिक प्रो</h1>
+                        <span class="text-[9px] sm:text-[10px] bg-amber-400/20 border border-amber-300/40 text-amber-200 font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                            By Anuraj
+                        </span>
+                        <span class="text-[9px] sm:text-[10px] bg-emerald-400/20 border border-emerald-400/40 text-emerald-200 font-bold px-1.5 py-0.2 rounded-full flex items-center gap-1">
+                            <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot inline-block"></span>
+                            <span id="syncStatusBadge">सुरक्षित</span>
+                        </span>
+                    </div>
+                    <p id="headerWorkerBadge" class="text-[10px] sm:text-xs text-blue-100/90 truncate font-medium">स्मार्ट ड्यूटी & वेतन ऐप</p>
+                </div>
+            </div>
+
+            <!-- Header Actions: Month Switcher & Auth / PDF Quick Button -->
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <!-- Month Switcher Compact -->
+                <div class="flex items-center bg-white/15 backdrop-blur-md rounded-2xl p-0.5 border border-white/20">
+                    <button id="prevMonthBtn" class="p-1 sm:p-1.5 hover:bg-white/20 active:scale-90 rounded-xl transition" title="पिछला महीना">
+                        <i data-lucide="chevron-left" class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]"></i>
+                    </button>
+                    <div id="currentMonthYearLabel" class="px-1.5 sm:px-2 font-bold text-xs sm:text-sm text-white tracking-wide whitespace-nowrap min-w-[90px] sm:min-w-[120px] text-center select-none">
+                        अक्टूबर 2026
+                    </div>
+                    <button id="nextMonthBtn" class="p-1 sm:p-1.5 hover:bg-white/20 active:scale-90 rounded-xl transition" title="अगला महीना">
+                        <i data-lucide="chevron-right" class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Top PDF Download Button -->
+                <button id="topQuickPdfBtn" class="flex items-center gap-1 px-2.5 py-1.5 bg-amber-400 text-slate-950 hover:bg-amber-300 active:scale-95 rounded-xl text-xs font-black shadow transition" title="पूरे महीने की PDF रिपोर्ट डाउनलोड करें">
+                    <i data-lucide="file-down" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+                    <span class="hidden sm:inline">फुल PDF</span>
+                    <span class="sm:hidden">PDF</span>
+                </button>
+
+                <!-- Google Auth Chip / Login -->
+                <button id="googleSignInBtn" class="flex items-center gap-1 px-2.5 py-1.5 bg-white text-slate-800 hover:bg-slate-100 active:scale-95 rounded-xl text-xs font-bold shadow transition">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span class="hidden md:inline">लॉगिन</span>
+                </button>
+
+                <div id="userProfileChip" class="hidden items-center gap-1.5 bg-white/20 px-2 py-1 rounded-xl border border-white/25">
+                    <img id="userAvatar" src="https://placehold.co/64x64/3b82f6/ffffff?text=U" alt="Profile" class="w-6 h-6 rounded-full border border-white object-cover">
+                    <span id="userName" class="text-[11px] font-bold text-white max-w-[60px] sm:max-w-[90px] truncate">यूजर</span>
+                    <button id="signOutBtn" title="लॉगआउट" class="text-white hover:text-rose-200 p-0.5 rounded">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 flex-1 w-full space-y-3 sm:space-y-4">
+
+        <!-- Top Overview Stats Grid (7 Cards on Desktop, 3x2 + Hero on Mobile) -->
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5 no-print">
+            <!-- 1. Full Days -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-2 sm:p-3 rounded-2xl shadow-xs border border-emerald-400/40">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-extrabold text-emerald-100">फुल डे</span>
+                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-white/80"></i>
+                </div>
+                <h3 id="statFullDays" class="text-base sm:text-xl font-black mt-0.5">0 दिन</h3>
+                <p class="text-[9px] text-emerald-100">1.0 ड्यूटी</p>
+            </div>
+
+            <!-- 2. Half Days -->
+            <div class="bg-gradient-to-br from-amber-500 to-orange-600 text-white p-2 sm:p-3 rounded-2xl shadow-xs border border-amber-400/40">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-extrabold text-amber-100">हाफ डे</span>
+                    <i data-lucide="clock-4" class="w-3.5 h-3.5 text-white/80"></i>
+                </div>
+                <h3 id="statHalfDays" class="text-base sm:text-xl font-black mt-0.5">0 दिन</h3>
+                <p class="text-[9px] text-amber-100">0.5 ड्यूटी</p>
+            </div>
+
+            <!-- 3. Company Holidays + Paid Sundays -->
+            <div class="bg-gradient-to-br from-purple-600 to-indigo-700 text-white p-2 sm:p-3 rounded-2xl shadow-xs border border-purple-400/40">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-extrabold text-purple-100">रवि + छुट्टी</span>
+                    <i data-lucide="calendar-heart" class="w-3.5 h-3.5 text-yellow-300"></i>
+                </div>
+                <h3 id="statSundaysAndHolidays" class="text-base sm:text-xl font-black mt-0.5">0 दिन</h3>
+                <p id="statSunHolSub" class="text-[9px] text-purple-200 truncate">0 रवि, 0 अवकाश</p>
+            </div>
+
+            <!-- 4. Overtime -->
+            <div class="bg-gradient-to-br from-pink-600 to-rose-700 text-white p-2 sm:p-3 rounded-2xl shadow-xs border border-pink-400/40">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-extrabold text-pink-100">ओवरटाइम</span>
+                    <i data-lucide="flame" class="w-3.5 h-3.5 text-yellow-300"></i>
+                </div>
+                <h3 id="statTotalOT" class="text-base sm:text-xl font-black mt-0.5 whitespace-nowrap">0h 0m</h3>
+                <p class="text-[9px] text-pink-200">> 8h कार्य</p>
+            </div>
+
+            <!-- 5. Advance & Deductions -->
+            <div onclick="switchTab('advanceTab')" class="bg-gradient-to-br from-rose-500 to-red-700 text-white p-2 sm:p-3 rounded-2xl shadow-xs border border-rose-400/40 cursor-pointer active:scale-95 transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-extrabold text-rose-100">कुल कटौती</span>
+                    <i data-lucide="wallet-cards" class="w-3.5 h-3.5 text-yellow-200"></i>
+                </div>
+                <h3 id="statTotalDeductions" class="text-base sm:text-xl font-black mt-0.5 truncate">₹0</h3>
+                <p class="text-[9px] text-rose-100">एडवांस + PF/अन्य</p>
+            </div>
+
+            <!-- 6. Total Net In-Hand Salary Hero Card -->
+            <div onclick="switchTab('salaryTab')" class="bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-2 sm:p-3 rounded-2xl shadow-md border-2 border-amber-400/60 cursor-pointer active:scale-95 transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] sm:text-xs uppercase font-black text-amber-300">हाथ में वेतन</span>
+                    <i data-lucide="indian-rupee" class="w-3.5 h-3.5 text-amber-300"></i>
+                </div>
+                <h3 id="statEstSalary" class="text-base sm:text-xl font-black text-amber-300 mt-0.5 truncate">₹0.00</h3>
+                <p class="text-[9px] text-blue-200">
+                    <span id="statNetDutyCount">0.0</span> सवेतन दिन
+                </p>
+            </div>
+        </div>
+
+        <!-- Desktop Tab Switcher -->
+        <div class="no-print hidden md:flex items-center justify-between bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs">
+            <div class="flex items-center gap-1 flex-wrap">
+                <button onclick="switchTab('calendarTab')" class="nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs" data-tab="calendarTab">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    <span>कैलेंडर व्यू</span>
+                </button>
+                <button onclick="switchTab('listTab')" class="nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition" data-tab="listTab">
+                    <i data-lucide="table" class="w-4 h-4"></i>
+                    <span>पूरा महीना तालिका</span>
+                </button>
+                <button onclick="switchTab('salaryTab')" class="nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition" data-tab="salaryTab">
+                    <i data-lucide="receipt" class="w-4 h-4"></i>
+                    <span>वेतन ब्रेकडाउन स्लिप</span>
+                </button>
+                <button onclick="switchTab('advanceTab')" class="nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition" data-tab="advanceTab">
+                    <i data-lucide="hand-coins" class="w-4 h-4"></i>
+                    <span>एडवांस / खर्ची खाता</span>
+                </button>
+                <button onclick="switchTab('toolsTab')" class="nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition" data-tab="toolsTab">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>प्रोफाइल & सेटिंग्स</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 pr-2">
+                <button onclick="window.generateFullMonthPDF()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black transition shadow-xs">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                    <span>फुल मंथ PDF डाउनलोड</span>
+                </button>
+                <button id="quickFillDesktopBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-xl text-xs font-bold transition border border-blue-200">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500 fill-amber-400"></i>
+                    <span>ऑटो भरें (8h)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= TAB 1: CALENDAR VIEW ================= -->
+        <section id="calendarTab" class="tab-content active space-y-3">
+            <div id="calendarGridView" class="bg-white rounded-3xl shadow-md border-2 border-slate-200/90 p-2 sm:p-5">
+                <!-- Day Names Header -->
+                <div class="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center font-black uppercase tracking-wider text-[11px] sm:text-sm">
+                    <div class="py-1.5 sm:py-2 bg-rose-100 text-rose-700 rounded-xl border border-rose-300">रवि</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">सोम</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">मंगल</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">बुध</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">गुरु</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">शुक्र</div>
+                    <div class="py-1.5 sm:py-2 bg-slate-100 text-slate-700 rounded-xl border border-slate-200">शनि</div>
+                </div>
+                <!-- Dynamic Days Grid -->
+                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 sm:gap-2 text-xs sm:text-base">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Future Sundays Safety Alert -->
+            <div id="futureSundayAlert" class="p-2.5 sm:p-3 bg-amber-50/90 border border-amber-300 rounded-2xl text-xs text-amber-900 flex items-center justify-between gap-2 shadow-xs">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                    <span>
+                        <b>स्मार्ट सुरक्षा:</b> माह के <b id="futureSundayCountText">0 रविवार</b> अभी आने बाकी हैं, इसलिए उन्हें अग्रिम रूप से नहीं जोड़ा गया है।
+                    </span>
+                </div>
+                <span class="text-[10px] font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-lg shrink-0">ऑटो सुरक्षा</span>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: DETAILED TABLE VIEW ================= -->
+        <section id="listTab" class="tab-content space-y-3">
+            <div class="bg-white rounded-3xl shadow-md border-2 border-slate-200/90 overflow-hidden">
+                <div class="p-3 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-indigo-600"></i>
+                            <span>मासिक विस्तृत ड्यूटी रजिस्टर (1 से 30/31 तारीख)</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-500">किसी भी तारीख पर टैप करके हाजिरी या समय बदलें</p>
+                    </div>
+                    <button onclick="window.generateFullMonthPDF()" class="py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95">
+                        <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                        <span>पूरी तालिका + वेतन PDF डाउनलोड</span>
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm text-slate-700 border-collapse">
+                        <thead class="bg-gradient-to-r from-slate-100 via-indigo-50/50 to-slate-100 text-[10px] sm:text-xs uppercase font-extrabold text-slate-700 border-b-2 border-slate-200">
+                            <tr>
+                                <th class="py-2.5 px-2 sm:px-3">तारीख</th>
+                                <th class="py-2.5 px-2 sm:px-3">वार</th>
+                                <th class="py-2.5 px-2 sm:px-3">शिफ्ट/समय</th>
+                                <th class="py-2.5 px-2 sm:px-3">कार्य अवधि</th>
+                                <th class="py-2.5 px-2 sm:px-3">स्थिति</th>
+                                <th class="py-2.5 px-2 sm:px-3 text-pink-700">ओवरटाइम</th>
+                                <th class="py-2.5 px-2 sm:px-3">विवरण</th>
+                                <th class="py-2.5 px-2 sm:px-3 text-right no-print">एडिट</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dutyTableBody" class="divide-y divide-slate-100 text-xs sm:text-sm font-medium">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: SALARY BREAKDOWN & WHATSAPP SHARE ================= -->
+        <section id="salaryTab" class="tab-content space-y-3">
+            <div id="salaryBreakdownSection" class="bg-white rounded-3xl p-4 sm:p-6 shadow-md border-2 border-indigo-100 relative overflow-hidden">
+                <!-- Slip Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b-2 border-slate-200 gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-blue-600 rounded-2xl text-white shadow-xs">
+                            <i data-lucide="receipt" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
+                                    वेतन विवरण पत्रक (Salary Breakdown Slip)
+                                </h2>
+                                <span id="sbMonthDaysBadge" class="text-[11px] font-extrabold px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                                    31 दिन का माह
+                                </span>
+                            </div>
+                            <p id="sbEmployeeInfoLine" class="text-xs text-slate-600 font-semibold mt-0.5">
+                                कर्मचारी: स्वयं | कंपनी: सामान्य
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Action Buttons on Salary Slip -->
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <button onclick="window.shareSalaryOnWhatsApp()" class="py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95">
+                            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+                            <span>WhatsApp शेयर</span>
+                        </button>
+                        <button onclick="window.generateFullMonthPDF()" class="py-2 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl font-black text-xs flex items-center gap-1.5 shadow-xs transition active:scale-95">
+                            <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                            <span>PDF डाउनलोड</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Part A: Earnings Matrix (कुल कमाई) -->
+                <div class="mt-4">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-2 flex items-center gap-1.5">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                        <span>भाग 1: कुल अर्जित वेतन (Gross Earnings Breakdown)</span>
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-3">
+                        <!-- Daily Rate -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                            <p class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">प्रति दिन दर (1 Day)</p>
+                            <p id="sbPerDayRate" class="text-base sm:text-xl font-black text-slate-800 mt-0.5">₹0.00</p>
+                            <p id="sbRateNote" class="text-[10px] text-slate-500 truncate mt-0.5">मासिक ÷ कुल दिन</p>
+                        </div>
+
+                        <!-- Work Duty Earnings -->
+                        <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl">
+                            <p class="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase">कार्य ड्यूटी वेतन</p>
+                            <p id="sbWorkEarnings" class="text-base sm:text-xl font-black text-emerald-800 mt-0.5">₹0.00</p>
+                            <p id="sbWorkDaysDetail" class="text-[10px] text-emerald-700 truncate mt-0.5">0 दिन कार्य</p>
+                        </div>
+
+                        <!-- Company Holiday Earnings -->
+                        <div class="p-3 bg-cyan-50/70 border border-cyan-200 rounded-2xl">
+                            <p class="text-[10px] sm:text-xs font-bold text-cyan-800 uppercase">कंपनी छुट्टी वेतन</p>
+                            <p id="sbHolidayEarnings" class="text-base sm:text-xl font-black text-cyan-900 mt-0.5">₹0.00</p>
+                            <p id="sbHolidayDetail" class="text-[10px] text-cyan-700 truncate mt-0.5">0 दिन सवेतन</p>
+                        </div>
+
+                        <!-- Paid Sunday Earnings -->
+                        <div class="p-3 bg-purple-50/70 border border-purple-200 rounded-2xl">
+                            <p class="text-[10px] sm:text-xs font-bold text-purple-800 uppercase">रविवार लाभ</p>
+                            <p id="sbSundayEarnings" class="text-base sm:text-xl font-black text-purple-900 mt-0.5">₹0.00</p>
+                            <p id="sbSundayDetail" class="text-[10px] text-purple-700 truncate mt-0.5">0 दिन पात्र रविवार</p>
+                        </div>
+
+                        <!-- OT Earnings -->
+                        <div class="p-3 bg-pink-50/70 border border-pink-200 rounded-2xl">
+                            <p class="text-[10px] sm:text-xs font-bold text-pink-700 uppercase">ओवरटाइम (OT)</p>
+                            <p id="sbOtEarnings" class="text-base sm:text-xl font-black text-pink-800 mt-0.5">₹0.00</p>
+                            <p id="sbOtHoursDetail" class="text-[10px] text-pink-700 truncate mt-0.5">0h 0m</p>
+                        </div>
+                    </div>
+
+                    <!-- Allowance & Full Month Attendance Bonus Row -->
+                    <div class="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="p-2.5 px-3.5 bg-indigo-50/60 border border-indigo-200 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-900">अतिरिक्त भत्ता (Allowance)</span>
+                                <p class="text-[10px] text-indigo-600">किराया / खाना भत्ता</p>
+                            </div>
+                            <span id="sbAllowanceAmount" class="text-sm sm:text-base font-black text-indigo-900">+ ₹0.00</span>
+                        </div>
+
+                        <!-- Manual / Auto Full Month Attendance Bonus Toggle Card -->
+                        <div class="p-2.5 px-3.5 bg-amber-50/80 border border-amber-300 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <label class="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" id="quickToggleFullBonus" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500">
+                                    <span class="text-xs font-black text-amber-950">फुल मंथ ड्यूटी बोनस</span>
+                                </label>
+                                <p id="sbBonusStatusNote" class="text-[10px] text-amber-700 mt-0.5">सेटिंग्स से राशि बदलें</p>
+                            </div>
+                            <span id="sbFullBonusAmount" class="text-sm sm:text-base font-black text-amber-900">+ ₹0.00</span>
+                        </div>
+
+                        <div class="p-2.5 px-3.5 bg-emerald-100/70 border border-emerald-300 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-black text-emerald-950 uppercase">कुल सकल वेतन (Gross)</span>
+                                <p class="text-[10px] text-emerald-800">कटौती से पहले कुल कमाई</p>
+                            </div>
+                            <span id="sbGrossSalary" class="text-base sm:text-lg font-black text-emerald-950">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Part B: Deductions Matrix (कुल कटौती व एडवांस) -->
+                <div class="mt-4 pt-3.5 border-t border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                            <i data-lucide="trending-down" class="w-4 h-4 text-rose-600"></i>
+                            <span>भाग 2: मासिक कटौती व एडवांस (Deductions & Advance)</span>
+                        </h3>
+                        <button onclick="switchTab('advanceTab')" class="text-[11px] font-bold text-indigo-600 hover:underline flex items-center gap-1">
+                            <span>+ एडवांस जोड़ें/देखें</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <div class="p-2.5 bg-rose-50/70 border border-rose-200 rounded-2xl">
+                            <p class="text-[10px] font-bold text-rose-700 uppercase">माह में लिया एडवांस</p>
+                            <p id="sbAdvanceDeduct" class="text-sm sm:text-lg font-black text-rose-800 mt-0.5">- ₹0.00</p>
+                            <p id="sbAdvanceCountNote" class="text-[10px] text-rose-600">0 बार में लिया</p>
+                        </div>
+                        <div class="p-2.5 bg-orange-50/70 border border-orange-200 rounded-2xl">
+                            <p class="text-[10px] font-bold text-orange-800 uppercase">PF / ESI कटौती</p>
+                            <p id="sbPfEsiDeduct" class="text-sm sm:text-lg font-black text-orange-900 mt-0.5">- ₹0.00</p>
+                            <p class="text-[10px] text-orange-700">फिक्स मासिक फंड</p>
+                        </div>
+                        <div class="p-2.5 bg-amber-50/70 border border-amber-200 rounded-2xl">
+                            <p class="text-[10px] font-bold text-amber-800 uppercase">कैंटीन / रूम / अन्य</p>
+                            <p id="sbOtherDeduct" class="text-sm sm:text-lg font-black text-amber-900 mt-0.5">- ₹0.00</p>
+                            <p class="text-[10px] text-amber-700">चाय/खाना/अन्य</p>
+                        </div>
+                        <div class="p-2.5 bg-rose-100/80 border border-rose-300 rounded-2xl">
+                            <p class="text-[10px] font-black text-rose-900 uppercase">कुल कटौती (Total Cut)</p>
+                            <p id="sbTotalDeductions" class="text-sm sm:text-lg font-black text-rose-900 mt-0.5">- ₹0.00</p>
+                            <p class="text-[10px] text-rose-700">सकल वेतन से घटाव</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grand Total In-Hand Bar -->
+                <div class="mt-4 p-4 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-md border border-amber-400/40">
+                    <div>
+                        <span class="p-1 px-2.5 bg-amber-400 text-slate-950 rounded-lg font-black text-xs inline-block mb-1">
+                            शुद्ध देय वेतन (Net In-Hand Pay)
+                        </span>
+                        <p class="text-xs text-blue-200">
+                            कुल सकल कमाई (<span id="sbFormulaGross">₹0</span>) - कुल कटौती (<span id="sbFormulaDeduct">₹0</span>)
+                        </p>
+                    </div>
+                    <div class="flex items-baseline gap-2 self-end sm:self-auto">
+                        <span class="text-xs text-blue-200 font-bold">हाथ में मिलने वाली राशि:</span>
+                        <span id="sbTotalSalary" class="text-2xl sm:text-3xl font-black text-amber-300">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: ADVANCE / KHARCHI LEDGER (NEW PRO FEATURE) ================= -->
+        <section id="advanceTab" class="tab-content space-y-3">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+                <!-- Add Advance Form -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 border-2 border-indigo-100 shadow-sm space-y-3 h-fit">
+                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                        <div class="p-2 bg-rose-100 text-rose-700 rounded-xl">
+                            <i data-lucide="hand-coins" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-sm sm:text-base text-slate-800">नया एडवांस / खर्ची लिखें</h3>
+                            <p class="text-[11px] text-slate-500">महीने के बीच में लिए गए पैसे यहाँ दर्ज करें</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs sm:text-sm">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">तारीख चुनें</label>
+                            <input type="date" id="advDateInput" class="w-full px-3 py-2 border-2 border-slate-300 rounded-xl font-bold bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">राशि (₹ Amount)</label>
+                            <input type="number" id="advAmountInput" placeholder="उदा. 1500" class="w-full px-3 py-2 border-2 border-slate-300 rounded-xl font-extrabold text-base bg-slate-50">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">किस काम के लिए / विवरण</label>
+                            <input type="text" id="advNoteInput" placeholder="उदा. घर खर्च, राशन, मेडिकल, ठेकेदार से नकद..." class="w-full px-3 py-2 border-2 border-slate-300 rounded-xl font-medium bg-slate-50">
+                        </div>
+                        <button id="addAdvanceEntryBtn" class="w-full py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md transition active:scale-95">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>एडवांस खाते में जोड़ें</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Month Advance List -->
+                <div class="lg:col-span-2 bg-white rounded-3xl p-4 sm:p-5 border-2 border-slate-200/90 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="font-extrabold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+                                    <i data-lucide="receipt-indian-rupee" class="w-4 h-4 text-rose-600"></i>
+                                    <span>इस महीने का एडवांस / उधार खाता</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-500">यह राशि स्वतः आपके महीने के वेतन से घट जाएगी और PDF में भी छपेगी</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase block">कुल मासिक एडवांस</span>
+                                <span id="advMonthTotalBadge" class="text-base sm:text-xl font-black text-rose-600">₹0.00</span>
+                            </div>
+                        </div>
+
+                        <div id="advanceListContainer" class="divide-y divide-slate-100 my-3 max-h-[340px] overflow-y-auto">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
+                        <span>💡 टिप: यदि कंपनी में PF/ESI या कैंटीन भी कटता है, तो उसे <b>प्रोफाइल & सेटिंग्स</b> में सेट करें।</span>
+                        <button onclick="document.getElementById('openSalarySettingsBtn').click()" class="font-extrabold text-indigo-600 hover:underline shrink-0 ml-2">सेटिंग्स खोलें</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: TOOLS, PROFILE & SETTINGS ================= -->
+        <section id="toolsTab" class="tab-content space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Worker Profile & Salary Settings Card -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                            <i data-lucide="user-cog" class="w-4 h-4 text-indigo-600"></i>
+                            <span>कर्मचारी प्रोफाइल व वेतन दर सेटिंग्स</span>
+                        </h4>
+                        <button id="openSalarySettingsBtn" class="px-3 py-1 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition">
+                            बदलें / एडिट
+                        </button>
+                    </div>
+                    <div class="text-xs text-slate-600 space-y-1.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                        <p>कर्मचारी नाम: <b id="settingsDisplayWorker" class="text-slate-900">खाली (सेट करें)</b> (<span id="settingsDisplayRole">पद खाली</span>)</p>
+                        <p>कंपनी / ठेकेदार: <b id="settingsDisplayCompany" class="text-slate-900">खाली (सेट करें)</b></p>
+                        <p>वेतन मोड: <b id="settingsDisplayType" class="text-indigo-700">मासिक निश्चित</b> (<b id="settingsDisplayAmount" class="text-slate-900">₹18,000</b>)</p>
+                        <p>मासिक भत्ता / कटौती: भत्ता <b id="settingsDisplayAllow" class="text-emerald-700">₹0</b> | PF/अन्य कटौती <b id="settingsDisplayDeduct" class="text-rose-600">₹0</b></p>
+                    </div>
+                </div>
+
+                <!-- Export & Print Actions -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                        <span>फुल मंथ रिपोर्ट डाउनलोड व शेयर</span>
+                    </h4>
+                    <p class="text-[11px] text-slate-500">पूरी 1 से 31 तारीख की हाजिरी और सैलरी ब्रेकडाउन एक साथ डाउनलोड करें:</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="exportPdfBtn" class="py-2.5 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>
+                            <span>फुल मंथ PDF (A4)</span>
+                        </button>
+                        <button id="exportExcelBtn" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow-xs">
+                            <i data-lucide="sheet" class="w-4 h-4"></i>
+                            <span>Excel (.xlsx)</span>
+                        </button>
+                    </div>
+                    <button onclick="window.shareSalaryOnWhatsApp()" class="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+                        <span>WhatsApp पर सैलरी हिसाब भेजें</span>
+                    </button>
+                </div>
+
+                <!-- Cloud & Offline Backup -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                        <i data-lucide="database" class="w-4 h-4 text-sky-600"></i>
+                        <span>क्लाउड सिंक व ऑफलाइन बैकअप</span>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="manualSyncBtn" class="py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 text-blue-600"></i>
+                            <span>क्लाउड अभी सिंक</span>
+                        </button>
+                        <button id="openBackupModalBtn" class="py-2.5 px-3 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="folder-archive" class="w-4 h-4 text-sky-600"></i>
+                            <span>JSON बैकअप / लोड</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Month Quick Fill & Reset -->
+                <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i>
+                        <span>त्वरित माह संचालन</span>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="quickFillMonthBtn" class="py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="check-check" class="w-4 h-4 text-amber-600"></i>
+                            <span>ऑटो भरें (8h)</span>
+                        </button>
+                        <button id="clearMonthBtn" class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="trash-2" class="w-4 h-4 text-rose-500"></i>
+                            <span>माह डेटा रीसेट</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- DEDICATED OFF-SCREEN A4 PDF MASTER TEMPLATE (Prevents cutting on Mobile & Desktop) -->
+    <div id="pdfMasterWrapper" aria-hidden="true">
+        <div id="pdfPrintableContent" class="bg-white text-slate-900 text-xs leading-snug relative overflow-hidden" style="width: 794px; box-sizing: border-box; padding: 28px 42px;">
+            <!-- Dynamically populated right before PDF generation with Full Salary Slip + Complete 31 Days Table -->
+        </div>
+    </div>
+
+    <!-- Native Mobile Floating Action Button (Quick Mark Today) -->
+    <div class="no-print md:hidden fixed bottom-18 right-4 z-40">
+        <button id="fabTodayBtn" class="w-13 h-13 bg-gradient-to-tr from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-full shadow-xl flex items-center justify-center active:scale-90 transition border-2 border-white" title="आज की ड्यूटी भरें">
+            <i data-lucide="plus" class="w-6 h-6 stroke-[3]"></i>
+        </button>
+    </div>
+
+    <!-- Native App Bottom Navigation Dock (5 Tabs on mobile) -->
+    <nav class="no-print md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 safe-bottom shadow-2xl">
+        <div class="grid grid-cols-5 h-15">
+            <button onclick="switchTab('calendarTab')" class="mobile-nav-btn flex flex-col items-center justify-center text-indigo-600 font-black transition" data-tab="calendarTab">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-0.5">कैलेंडर</span>
+            </button>
+            <button onclick="switchTab('listTab')" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 font-bold transition" data-tab="listTab">
+                <i data-lucide="table" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-0.5">रजिस्टर</span>
+            </button>
+            <button onclick="switchTab('salaryTab')" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 font-bold transition" data-tab="salaryTab">
+                <i data-lucide="receipt" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-0.5">वेतन स्लिप</span>
+            </button>
+            <button onclick="switchTab('advanceTab')" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 font-bold transition" data-tab="advanceTab">
+                <i data-lucide="hand-coins" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-0.5">एडवांस</span>
+            </button>
+            <button onclick="switchTab('toolsTab')" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-500 hover:text-slate-900 font-bold transition" data-tab="toolsTab">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-0.5">सेटिंग्स</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Duty Entry Bottom Sheet / Modal -->
+    <div id="entryModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+        <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border-2 border-indigo-100 transform transition-all safe-bottom">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 p-3.5 sm:p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-white/20 rounded-2xl backdrop-blur-sm">
+                        <i data-lucide="calendar" class="w-5 h-5 text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalDateTitle" class="font-extrabold text-base sm:text-lg tracking-tight">तारीख ड्यूटी दर्ज करें</h3>
+                        <p class="text-[11px] text-blue-100 font-medium">8 घंटे के बाद का समय स्वतः ओवर-टाइम (OT) बनेगा</p>
+                    </div>
+                </div>
+                <button id="closeModalBtn" class="text-white/80 hover:text-white p-1.5 rounded-2xl hover:bg-white/20 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-3.5 max-h-[75vh] overflow-y-auto">
+                <div id="modalSundayNotice" class="hidden p-2.5 bg-purple-50 border-2 border-purple-200 rounded-2xl text-purple-950 text-xs font-semibold flex items-start gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-purple-700 shrink-0 mt-0.5"></i>
+                    <span>यह <b>रविवार</b> है! यदि आप इस दिन काम करेंगे, तो पूरा कार्य समय <b>ओवरटाइम</b> में जुड़ेगा।</span>
+                </div>
+
+                <!-- Day Status Selector: 4 Native Options -->
+                <div>
+                    <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">दिन का प्रकार</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <label class="flex flex-col items-center justify-center p-2 rounded-xl border-2 border-slate-200 text-xs font-bold cursor-pointer hover:bg-slate-50 transition text-center select-none" id="labelStatusWork">
+                            <input type="radio" name="dayStatus" value="worked" class="sr-only">
+                            <i data-lucide="briefcase" class="w-4 h-4 mb-1 text-blue-600"></i>
+                            <span>कार्य / ड्यूटी</span>
+                        </label>
+                        <label class="flex flex-col items-center justify-center p-2 rounded-xl border-2 border-cyan-200 text-xs font-bold cursor-pointer hover:bg-cyan-50 transition text-center select-none" id="labelStatusHoliday">
+                            <input type="radio" name="dayStatus" value="holiday" class="sr-only">
+                            <i data-lucide="gift" class="w-4 h-4 mb-1 text-cyan-600"></i>
+                            <span class="text-cyan-800">कंपनी छुट्टी</span>
+                        </label>
+                        <label class="flex flex-col items-center justify-center p-2 rounded-xl border-2 border-purple-200 text-xs font-bold cursor-pointer hover:bg-purple-50 transition text-center select-none" id="labelStatusPaidOff">
+                            <input type="radio" name="dayStatus" value="paid_off" class="sr-only">
+                            <i data-lucide="calendar-heart" class="w-4 h-4 mb-1 text-purple-600"></i>
+                            <span class="text-purple-800">सवेतन रवि</span>
+                        </label>
+                        <label class="flex flex-col items-center justify-center p-2 rounded-xl border-2 border-rose-200 text-xs font-bold cursor-pointer hover:bg-rose-50 transition text-center select-none" id="labelStatusAbsent">
+                            <input type="radio" name="dayStatus" value="absent" class="sr-only">
+                            <i data-lucide="user-x" class="w-4 h-4 mb-1 text-rose-600"></i>
+                            <span class="text-rose-700">गैरहाजिर</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quick Presets (Expanded with 12h OT & Night Shift) -->
+                <div id="timePresetsContainer" class="space-y-2.5">
+                    <div>
+                        <label class="block text-xs font-black text-slate-600 uppercase tracking-wider mb-1">त्वरित शिफ्ट व समय (Quick Shift)</label>
+                        <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                            <button type="button" id="presetFullDayBtn" class="py-1.5 px-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl hover:bg-emerald-100 active:scale-95 transition text-center">
+                                8h (9-5:30)
+                            </button>
+                            <button type="button" id="preset12hBtn" class="py-1.5 px-1 text-[11px] font-bold bg-pink-50 text-pink-800 border border-pink-200 rounded-xl hover:bg-pink-100 active:scale-95 transition text-center">
+                                12h (8-8:30)
+                            </button>
+                            <button type="button" id="presetNightBtn" class="py-1.5 px-1 text-[11px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 rounded-xl hover:bg-indigo-100 active:scale-95 transition text-center">
+                                नाइट (8PM-4AM)
+                            </button>
+                            <button type="button" id="presetHalfDayBtn" class="py-1.5 px-1 text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200 rounded-xl hover:bg-amber-100 active:scale-95 transition text-center">
+                                हाफ (9-1:00)
+                            </button>
+                            <button type="button" id="presetClearBtn" class="py-1.5 px-1 text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-200 active:scale-95 transition text-center">
+                                साफ करें
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fast Overtime (OT) Adder Bar -->
+                    <div class="p-2.5 bg-pink-50/80 border border-pink-200 rounded-2xl">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] font-black text-pink-900 uppercase flex items-center gap-1">
+                                <i data-lucide="flame" class="w-3.5 h-3.5 text-pink-600"></i>
+                                <span>ओवरटाइम (OT) जल्दी जोड़ें (1-Click OT)</span>
+                            </span>
+                            <span class="text-[10px] font-bold text-pink-700">सीधे घन्टे जोड़ें</span>
+                        </div>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button type="button" onclick="window.quickAddOTMinutes(60)" class="py-1.5 px-1 text-xs font-black bg-white text-pink-700 border border-pink-300 rounded-xl hover:bg-pink-600 hover:text-white active:scale-95 transition shadow-2xs">
+                                +1h OT
+                            </button>
+                            <button type="button" onclick="window.quickAddOTMinutes(120)" class="py-1.5 px-1 text-xs font-black bg-white text-pink-700 border border-pink-300 rounded-xl hover:bg-pink-600 hover:text-white active:scale-95 transition shadow-2xs">
+                                +2h OT
+                            </button>
+                            <button type="button" onclick="window.quickAddOTMinutes(180)" class="py-1.5 px-1 text-xs font-black bg-white text-pink-700 border border-pink-300 rounded-xl hover:bg-pink-600 hover:text-white active:scale-95 transition shadow-2xs">
+                                +3h OT
+                            </button>
+                            <button type="button" onclick="window.quickAddOTMinutes(240)" class="py-1.5 px-1 text-xs font-black bg-white text-pink-700 border border-pink-300 rounded-xl hover:bg-pink-600 hover:text-white active:scale-95 transition shadow-2xs">
+                                +4h OT
+                            </button>
+                            <button type="button" onclick="window.quickAddOTMinutes(30)" class="py-1.5 px-1 text-xs font-black bg-pink-100 text-pink-900 border border-pink-300 rounded-xl hover:bg-pink-600 hover:text-white active:scale-95 transition shadow-2xs">
+                                +30m
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In & Out Inputs (Original Clean Layout + Click Anywhere on Box or Written Time to Change) -->
+                <div id="timeInputsContainer" class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <div onclick="window.triggerTimePicker('timeIn')" class="cursor-pointer">
+                            <label for="timeIn" class="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1 cursor-pointer">
+                                <i data-lucide="log-in" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                <span>आने का समय (In)</span>
+                            </label>
+                            <input type="time" id="timeIn" onclick="event.stopPropagation(); window.triggerTimePicker('timeIn')" class="full-click-time w-full px-2.5 py-1.5 border-2 border-slate-300 rounded-xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 bg-slate-50 cursor-pointer">
+                        </div>
+                        <div onclick="window.triggerTimePicker('timeOut')" class="cursor-pointer">
+                            <label for="timeOut" class="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1 cursor-pointer">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5 text-rose-600"></i>
+                                <span>जाने का समय (Out)</span>
+                            </label>
+                            <input type="time" id="timeOut" onclick="event.stopPropagation(); window.triggerTimePicker('timeOut')" class="full-click-time w-full px-2.5 py-1.5 border-2 border-slate-300 rounded-xl text-sm font-bold focus:ring-4 focus:ring-blue-500/20 bg-slate-50 cursor-pointer">
+                        </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer pt-0.5">
+                        <input type="checkbox" id="deductLunchToggle" checked class="w-4 h-4 rounded text-indigo-600">
+                        <span>दोपहर 1:00 - 1:30 लंच ब्रेक (30m) स्वतः घटाएं</span>
+                    </label>
+                </div>
+
+                <!-- Live Auto Calculation Box -->
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>शुद्ध कार्य अवधि:</span>
+                        <span id="modalCalcDuration" class="font-extrabold text-slate-900">0h 0m</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>ड्यूटी गणना:</span>
+                        <span id="modalCalcDuty" class="font-black text-emerald-700">0 ड्यूटी</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>ओवरटाइम (> 8h):</span>
+                        <span id="modalCalcOT" class="font-black text-pink-700">0h 0m</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="entryRemark" class="block text-xs font-bold text-slate-700 mb-1">टिप्पणी / काम या छुट्टी का विवरण (वैकल्पिक)</label>
+                    <input type="text" id="entryRemark" placeholder="उदा. दिवाली छुट्टी, नाइट शिफ्ट, मशीन नंबर 2..." class="w-full px-3 py-1.5 border-2 border-slate-300 rounded-xl text-xs font-medium focus:ring-4 focus:ring-blue-500/20 bg-slate-50">
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border-t-2 border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" id="modalCancelBtn" class="px-3.5 py-1.5 border-2 border-slate-300 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
+                    रद्द करें
+                </button>
+                <button type="button" id="modalSaveBtn" class="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span>सुरक्षित करें</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expanded Profile & Salary Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border-2 border-indigo-100 max-h-[90vh] flex flex-col">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 p-4 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-amber-400 text-slate-900 rounded-2xl">
+                        <i data-lucide="user-cog" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-base sm:text-lg tracking-tight">प्रोफाइल, वेतन व कटौती सेटिंग्स</h3>
+                        <p class="text-[11px] text-blue-100">यह जानकारी आपकी PDF सैलरी स्लिप पर छपेगी</p>
+                    </div>
+                </div>
+                <button id="closeSettingsModalBtn" class="text-white/80 hover:text-white p-1.5 rounded-2xl hover:bg-white/20 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-3.5 overflow-y-auto text-xs sm:text-sm">
+                <!-- Worker & Company Profile Fields -->
+                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                    <h4 class="font-black text-xs uppercase text-indigo-700">1. कर्मचारी व कंपनी विवरण (PDF हेडर के लिए)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">कर्मचारी का नाम</label>
+                            <input type="text" id="workerNameInput" placeholder="उदा. राजेश कुमार" class="w-full px-3 py-1.5 border border-slate-300 rounded-xl font-bold bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">पद / काम (Designation)</label>
+                            <input type="text" id="workerRoleInput" placeholder="उदा. मशीन ऑपरेटर / फिटर" class="w-full px-3 py-1.5 border border-slate-300 rounded-xl font-bold bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">कंपनी / फैक्ट्री / ठेकेदार का नाम</label>
+                        <input type="text" id="companyNameInput" placeholder="उदा. श्री बालाजी इंडस्ट्रीज प्रा. लि." class="w-full px-3 py-1.5 border border-slate-300 rounded-xl font-bold bg-white">
+                    </div>
+                </div>
+
+                <!-- Base Salary & OT -->
+                <div class="p-3 bg-blue-50/40 rounded-2xl border border-blue-200 space-y-2.5">
+                    <h4 class="font-black text-xs uppercase text-blue-800">2. मूल वेतन व ओवरटाइम दर</h4>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">वेतन का प्रकार</label>
+                        <select id="salaryTypeSelect" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold bg-white">
+                            <option value="monthly">मासिक निश्चित वेतन (Monthly Fixed)</option>
+                            <option value="daily">दैनिक मजदूरी दर (Per Day Rate)</option>
+                        </select>
+                    </div>
+
+                    <div id="monthlyRateGroup">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">मूल मासिक वेतन (₹ Monthly Base)</label>
+                        <input type="number" id="baseMonthlySalary" value="18000" class="w-full px-3 py-1.5 border border-slate-300 rounded-xl text-base font-extrabold bg-white">
+                        <p class="text-[10px] text-slate-500 mt-0.5">दैनिक दर = मासिक वेतन ÷ चालू माह के दिन (28/29/30/31)</p>
+                    </div>
+
+                    <div id="dailyRateGroup" class="hidden">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">प्रति दिन की दर (₹ Per Day Rate)</label>
+                        <input type="number" id="baseDailyRate" value="700" class="w-full px-3 py-1.5 border border-slate-300 rounded-xl text-base font-extrabold bg-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">ओवरटाइम (OT) दर</label>
+                        <div class="space-y-1.5">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+                                <input type="checkbox" id="autoCalcOtCheckbox" checked class="w-4 h-4 text-blue-600 rounded">
+                                <span>माह अनुसार ऑटो निकालें (दैनिक दर ÷ 8 घंटे)</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" step="0.01" id="hourlyOtRate" value="0" class="w-full px-3 py-1.5 border border-slate-300 rounded-xl text-sm font-extrabold bg-white">
+                                <span class="text-xs font-bold text-slate-600 whitespace-nowrap">₹ / घंटा</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Allowances, Full Month Bonus & Fixed Deductions -->
+                <div class="p-3 bg-emerald-50/40 rounded-2xl border border-emerald-200 space-y-2.5">
+                    <h4 class="font-black text-xs uppercase text-emerald-800">3. फुल मंथ ड्यूटी बोनस, भत्ता व कटौती (PF / कैंटीन)</h4>
+                    
+                    <!-- Full Month Attendance Bonus Box -->
+                    <div class="p-2.5 bg-amber-50 border border-amber-300 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                                <i data-lucide="award" class="w-4 h-4 text-amber-600"></i>
+                                <span>पूरे महीने ड्यूटी करने पर बोनस (Attendance Bonus)</span>
+                            </label>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-amber-800 mb-0.5">बोनस राशि (₹)</label>
+                                <input type="number" id="fullMonthBonusInput" value="1000" placeholder="उदा. 1000" class="w-full px-2.5 py-1.5 border border-amber-300 rounded-lg font-extrabold bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-amber-800 mb-0.5">बोनस कैसे जोड़ें?</label>
+                                <select id="bonusModeSelect" class="w-full px-2 py-1.5 border border-amber-300 rounded-lg font-bold text-xs bg-white">
+                                    <option value="manual_on">हमेशा जोड़ें (Manual ON)</option>
+                                    <option value="auto_no_absent">ऑटो (जब 0 गैरहाजिर हो)</option>
+                                    <option value="manual_off">बंद रखें (OFF)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-800 mb-1">+ अन्य मासिक भत्ता (₹)</label>
+                            <input type="number" id="monthlyAllowanceInput" value="0" placeholder="0" class="w-full px-2.5 py-1.5 border border-emerald-300 rounded-xl font-bold bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-rose-700 mb-1">- PF / ESI कटौती (₹)</label>
+                            <input type="number" id="pfDeductionInput" value="0" placeholder="0" class="w-full px-2.5 py-1.5 border border-rose-300 rounded-xl font-bold bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-amber-800 mb-1">- कैंटीन / रूम (₹)</label>
+                            <input type="number" id="otherDeductionInput" value="0" placeholder="0" class="w-full px-2.5 py-1.5 border border-amber-300 rounded-xl font-bold bg-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border-t-2 border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
+                <button type="button" id="cancelSettingsBtn" class="px-4 py-1.5 border-2 border-slate-300 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
+                    रद्द करें
+                </button>
+                <button type="button" id="saveSettingsBtn" class="px-5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-xs font-extrabold transition shadow-lg shadow-blue-600/30 active:scale-95">
+                    सेव व लागू करें
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup & Restore Modal -->
+    <div id="backupModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border-2 border-indigo-100">
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-sky-400 text-slate-900 rounded-2xl">
+                        <i data-lucide="database" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-lg tracking-tight">डेटा बैकअप व लोड</h3>
+                        <p class="text-xs text-blue-100">ऑनलाइन व ऑफलाइन दोनों तरह सुरक्षित</p>
+                    </div>
+                </div>
+                <button id="closeBackupModalBtn" class="text-white/80 hover:text-white p-1.5 rounded-2xl hover:bg-white/20 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
+                <div class="p-3 bg-blue-50 border border-blue-200 rounded-2xl">
+                    <h4 class="font-bold text-blue-900 mb-1 flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-4 h-4 text-blue-600"></i>
+                        <span>1. ऑफलाइन बैकअप डाउनलोड करें</span>
+                    </h4>
+                    <p class="text-[11px] text-blue-800/80 mb-2">ड्यूटी, एडवांस व सेटिंग्स को सुरक्षित JSON फाइल में डाउनलोड करें।</p>
+                    <button id="downloadBackupBtn" class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        <span>बैकअप फाइल डाउनलोड</span>
+                    </button>
+                </div>
+
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+                    <h4 class="font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+                        <i data-lucide="upload" class="w-4 h-4 text-amber-600"></i>
+                        <span>2. बैकअप फाइल लोड / रिस्टोर करें</span>
+                    </h4>
+                    <p class="text-[11px] text-amber-800/80 mb-2">दूसरे फोन की बैकअप फाइल को यहाँ वापस लोड करें।</p>
+                    <input type="file" id="restoreFileInput" accept=".json" class="hidden">
+                    <button id="triggerRestoreBtn" class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="file-up" class="w-4 h-4"></i>
+                        <span>बैकअप फाइल लोड करें</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t-2 border-slate-100 flex justify-end">
+                <button type="button" id="closeBackupFooterBtn" class="px-4 py-1.5 border-2 border-slate-300 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition">
+                    बंद करें
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification -->
+    <div id="customToast" class="fixed bottom-20 md:bottom-6 right-4 bg-slate-900/95 backdrop-blur-md text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm font-bold z-50 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none border border-slate-700 max-w-[90vw]">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+        <span id="toastMessage">सफलतापूर्वक सेव किया गया</span>
+    </div>
+
+    <script>
+        // Native App Tab Switching Function
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const activeTab = document.getElementById(tabId);
+            if (activeTab) activeTab.classList.add('active');
+
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.remove('text-slate-500', 'font-bold');
+                    btn.classList.add('text-indigo-600', 'font-black');
+                } else {
+                    btn.classList.remove('text-indigo-600', 'font-black');
+                    btn.classList.add('text-slate-500', 'font-bold');
+                }
+            });
+
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow-xs';
+                } else {
+                    btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition';
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    </script>
+
+    <!-- Firebase Cloud Sync Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const customFirebaseConfig = {
+            apiKey: "AIzaSyBQjVkyvnqn1zeL5vVhgx8hNNXdFLOQSEQ",
+            authDomain: "duty-hisaab.firebaseapp.com",
+            projectId: "duty-hisaab",
+            storageBucket: "duty-hisaab.firebasestorage.app",
+            messagingSenderId: "622117708427",
+            appId: "1:622117708427:web:e4b2e43e488510db35ea8e",
+            measurementId: "G-3933RS29ZG"
+        };
+
+        let app = null, auth = null, db = null, currentUser = null;
+        let isOnline = navigator.onLine;
+
+        if (customFirebaseConfig && customFirebaseConfig.apiKey) {
+            try {
+                app = initializeApp(customFirebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    currentUser = user;
+                    updateAuthUI(user);
+                    if (user && db) {
+                        await syncBidirectional(user);
+                    }
+                });
+            } catch (err) {
+                console.warn("Firebase init notice:", err);
+            }
+        }
+
+        function updateAuthUI(user) {
+            const googleBtn = document.getElementById('googleSignInBtn');
+            const profileChip = document.getElementById('userProfileChip');
+            const syncBadge = document.getElementById('syncStatusBadge');
+            const syncDot = document.getElementById('syncDot');
+
+            if (user && !user.isAnonymous) {
+                googleBtn?.classList.add('hidden');
+                profileChip?.classList.remove('hidden');
+                profileChip?.classList.add('flex');
+
+                const nameText = user.displayName || user.email || 'यूजर';
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) userNameEl.textContent = nameText.split(' ')[0];
+
+                if (user.photoURL) {
+                    const avatar = document.getElementById('userAvatar');
+                    if (avatar) avatar.src = user.photoURL;
+                }
+                if (syncBadge) syncBadge.textContent = 'क्लाउड सिंक';
+                if (syncDot) syncDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot inline-block';
+            } else {
+                googleBtn?.classList.remove('hidden');
+                profileChip?.classList.add('hidden');
+                profileChip?.classList.remove('flex');
+
+                if (syncBadge) syncBadge.textContent = isOnline ? 'लोकल सुरक्षित' : 'ऑफलाइन';
+                if (syncDot) syncDot.className = isOnline ? 'w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block' : 'w-1.5 h-1.5 rounded-full bg-amber-400 inline-block';
+            }
+        }
+
+        window.handleGoogleSignIn = async function() {
+            if (!auth) {
+                window.showToast("डेटा डिवाइस में सुरक्षित है।");
+                return;
+            }
+            try {
+                window.showToast("गूगल लॉगिन शुरू हो रहा है...");
+                const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+                const userCred = await signInWithPopup(auth, provider);
+                if (userCred?.user) {
+                    window.showToast(`नमस्ते ${userCred.user.displayName || ''}! डेटा सिंक हो रहा है...`);
+                }
+            } catch (err) {
+                window.showToast("लॉगिन पूर्ण नहीं हुआ, डेटा लोकल में सुरक्षित है।");
+            }
+        };
+
+        window.handleSignOut = async function() {
+            if (auth) {
+                await signOut(auth);
+                currentUser = null;
+                updateAuthUI(null);
+                window.showToast("सफलतापूर्वक लॉगआउट हुए।");
+            }
+        };
+
+        async function syncBidirectional(user) {
+            if (!db || !user) return;
+            try {
+                const userDocRef = doc(db, 'users', user.uid, 'payroll_data', 'current');
+                const docSnap = await getDoc(userDocRef);
+
+                let cloudRecords = {}, cloudSettings = {}, cloudAdvances = [];
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.records) try { cloudRecords = JSON.parse(data.records); } catch (e) {}
+                    if (data.settings) try { cloudSettings = JSON.parse(data.settings); } catch (e) {}
+                    if (data.advances) try { cloudAdvances = JSON.parse(data.advances); } catch (e) {}
+                }
+
+                window.dutyRecords = { ...cloudRecords, ...window.dutyRecords };
+                window.appSettings = { ...window.appSettings, ...cloudSettings };
+
+                // Merge unique advances by id
+                const advMap = new Map();
+                [...cloudAdvances, ...(window.advanceRecords || [])].forEach(item => {
+                    if (item && item.id) advMap.set(item.id, item);
+                });
+                window.advanceRecords = Array.from(advMap.values());
+
+                localStorage.setItem('shramik_pro_records', JSON.stringify(window.dutyRecords));
+                localStorage.setItem('shramik_pro_settings', JSON.stringify(window.appSettings));
+                localStorage.setItem('shramik_pro_advances', JSON.stringify(window.advanceRecords));
+
+                await setDoc(userDocRef, {
+                    records: JSON.stringify(window.dutyRecords),
+                    settings: JSON.stringify(window.appSettings),
+                    advances: JSON.stringify(window.advanceRecords),
+                    lastUpdated: new Date().toISOString(),
+                    userEmail: user.email || '',
+                    userName: user.displayName || ''
+                }, { merge: true });
+
+                window.renderApp();
+                window.showToast("क्लाउड के साथ डेटा सिंक हो गया!");
+            } catch (err) {
+                console.error("Cloud sync error:", err);
+            }
+        }
+
+        window.saveDataToCloud = async function() {
+            if (!db || !currentUser) return;
+            try {
+                const userDocRef = doc(db, 'users', currentUser.uid, 'payroll_data', 'current');
+                await setDoc(userDocRef, {
+                    records: JSON.stringify(window.dutyRecords),
+                    settings: JSON.stringify(window.appSettings),
+                    advances: JSON.stringify(window.advanceRecords || []),
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+            } catch (e) {
+                console.warn("Cloud save notice:", e);
+            }
+        };
+
+        window.manualCloudSync = async function() {
+            if (currentUser && db) {
+                await syncBidirectional(currentUser);
+            } else {
+                window.saveRecordsLocal();
+                window.saveSettingsLocal();
+                window.showToast("डेटा डिवाइस में सुरक्षित रूप से सेव है।");
+            }
+        };
+
+        document.getElementById('googleSignInBtn')?.addEventListener('click', window.handleGoogleSignIn);
+        document.getElementById('signOutBtn')?.addEventListener('click', window.handleSignOut);
+        document.getElementById('manualSyncBtn')?.addEventListener('click', window.manualCloudSync);
+    </script>
+
+    <!-- Core Application Logic -->
+    <script>
+        const HindiMonthNames = [
+            "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
+            "जुलाई", "अगस्त", "सितम्बर", "अक्टूबर", "नवम्बर", "दिसम्बर"
+        ];
+        const HindiDayNames = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+
+        const realToday = new Date();
+        const realTodayStr = `${realToday.getFullYear()}-${String(realToday.getMonth() + 1).padStart(2, '0')}-${String(realToday.getDate()).padStart(2, '0')}`;
+
+        let currentDate = new Date();
+        let currentEditDateStr = null;
+
+        // Global State (Name boxes kept empty by default)
+        window.appSettings = {
+            workerName: '',
+            workerRole: '',
+            companyName: '',
+            salaryType: 'monthly',
+            baseMonthlySalary: 18000,
+            baseDailyRate: 700,
+            hourlyOtRate: 0,
+            autoCalcOt: true,
+            monthlyAllowance: 0,
+            fullMonthBonusAmount: 1000,
+            bonusMode: 'manual_off',
+            pfDeduction: 0,
+            otherDeduction: 0
+        };
+
+        window.dutyRecords = {};
+        window.advanceRecords = [];
+        window.latestMonthMetrics = {};
+
+        window.loadSavedData = function() {
+            try {
+                const rec = localStorage.getItem('shramik_pro_records');
+                if (rec) window.dutyRecords = JSON.parse(rec);
+
+                const sett = localStorage.getItem('shramik_pro_settings');
+                if (sett) {
+                    const parsed = JSON.parse(sett);
+                    // Clear old default prefilled sample names if untouched
+                    if (parsed.workerName === 'राजेश कुमार' && parsed.companyName === 'श्री बालाजी इंडस्ट्रीज') {
+                        parsed.workerName = '';
+                        parsed.workerRole = '';
+                        parsed.companyName = '';
+                    }
+                    window.appSettings = { ...window.appSettings, ...parsed };
+                }
+
+                const adv = localStorage.getItem('shramik_pro_advances');
+                if (adv) window.advanceRecords = JSON.parse(adv);
+            } catch (e) {
+                console.error("Local storage load error", e);
+            }
+        };
+
+        window.saveRecordsLocal = function() {
+            try {
+                localStorage.setItem('shramik_pro_records', JSON.stringify(window.dutyRecords));
+                localStorage.setItem('shramik_pro_advances', JSON.stringify(window.advanceRecords));
+            } catch (e) {}
+            if (window.saveDataToCloud) window.saveDataToCloud();
+        };
+
+        window.saveSettingsLocal = function() {
+            try {
+                localStorage.setItem('shramik_pro_settings', JSON.stringify(window.appSettings));
+            } catch (e) {}
+            if (window.saveDataToCloud) window.saveDataToCloud();
+        };
+
+        function calculateLunchDeduction(inMinutes, outMinutes, deductLunch = true) {
+            if (!deductLunch) return 0;
+            const lunchStart = 13 * 60; // 1:00 PM
+            const lunchEnd = 13 * 60 + 30; // 1:30 PM
+            const overlapStart = Math.max(inMinutes, lunchStart);
+            const overlapEnd = Math.min(outMinutes, lunchEnd);
+            return overlapEnd > overlapStart ? (overlapEnd - overlapStart) : 0;
+        }
+
+        function hasAdjacentDutyActivity(targetDateStr) {
+            const record = window.dutyRecords[targetDateStr];
+            if (!record) return false;
+            if (record.statusType === 'absent') return false;
+            if (record.statusType === 'worked' && (record.inTime || record.outTime)) return true;
+            if (record.statusType === 'paid_off' || record.statusType === 'holiday') return true;
+            return false;
+        }
+
+        function isSundayEligible(dateObj) {
+            const prevDayObj = new Date(dateObj);
+            prevDayObj.setDate(prevDayObj.getDate() - 1);
+            const prevStr = `${prevDayObj.getFullYear()}-${String(prevDayObj.getMonth() + 1).padStart(2, '0')}-${String(prevDayObj.getDate()).padStart(2, '0')}`;
+
+            const nextDayObj = new Date(dateObj);
+            nextDayObj.setDate(nextDayObj.getDate() + 1);
+            const nextStr = `${nextDayObj.getFullYear()}-${String(nextDayObj.getMonth() + 1).padStart(2, '0')}-${String(nextDayObj.getDate()).padStart(2, '0')}`;
+
+            return (hasAdjacentDutyActivity(prevStr) || hasAdjacentDutyActivity(nextStr));
+        }
+
+        function calculateDutyForDate(dateStr, entry) {
+            const dateObj = new Date(dateStr + "T00:00:00");
+            const isSunday = (dateObj.getDay() === 0);
+            const isFuture = (dateStr > realTodayStr);
+
+            if (!entry) {
+                if (isFuture) {
+                    return {
+                        status: 'future',
+                        category: 'future',
+                        dutyCount: 0,
+                        workedMinutes: 0,
+                        effectiveMinutes: 0,
+                        otMinutes: 0,
+                        labelText: isSunday ? 'आगामी रवि' : 'आगामी',
+                        labelColor: 'bg-slate-100 text-slate-400 border-slate-200 border-dashed',
+                        isPaid: false
+                    };
+                }
+
+                if (isSunday) {
+                    if (isSundayEligible(dateObj)) {
+                        return {
+                            status: 'paid_off',
+                            category: 'sunday',
+                            dutyCount: 1.0,
+                            workedMinutes: 0,
+                            effectiveMinutes: 0,
+                            otMinutes: 0,
+                            labelText: 'सवेतन रविवार',
+                            labelColor: 'bg-purple-100 text-purple-800 border-purple-300 font-bold',
+                            isPaid: true
+                        };
+                    } else {
+                        return {
+                            status: 'sunday_unqualified',
+                            category: 'unpaid',
+                            dutyCount: 0,
+                            workedMinutes: 0,
+                            effectiveMinutes: 0,
+                            otMinutes: 0,
+                            labelText: 'रविवार (अपात्र)',
+                            labelColor: 'bg-slate-100 text-slate-500 border-slate-300 border-dashed',
+                            isPaid: false
+                        };
+                    }
+                }
+
+                return {
+                    status: 'empty',
+                    category: 'empty',
+                    dutyCount: 0,
+                    workedMinutes: 0,
+                    effectiveMinutes: 0,
+                    otMinutes: 0,
+                    labelText: 'खाली दिन',
+                    labelColor: 'bg-slate-100 text-slate-500 border-slate-200',
+                    isPaid: false
+                };
+            }
+
+            if (entry.statusType === 'absent') {
+                return {
+                    status: 'absent',
+                    category: 'absent',
+                    dutyCount: 0,
+                    workedMinutes: 0,
+                    effectiveMinutes: 0,
+                    otMinutes: 0,
+                    labelText: 'गैरहाजिर (Unpaid)',
+                    labelColor: 'bg-rose-100 text-rose-800 border-rose-400 font-extrabold',
+                    isPaid: false
+                };
+            }
+
+            if (entry.statusType === 'holiday') {
+                const name = entry.remark ? entry.remark : 'कंपनी छुट्टी';
+                return {
+                    status: 'holiday',
+                    category: 'holiday',
+                    dutyCount: 1.0,
+                    workedMinutes: 0,
+                    effectiveMinutes: 0,
+                    otMinutes: 0,
+                    labelText: `सवेतन: ${name}`,
+                    labelColor: 'bg-cyan-100 text-cyan-900 border-cyan-400 font-black',
+                    isPaid: true
+                };
+            }
+
+            if (entry.statusType === 'paid_off' || (!entry.inTime && !entry.outTime && isSunday)) {
+                return {
+                    status: 'paid_off',
+                    category: 'sunday',
+                    dutyCount: 1.0,
+                    workedMinutes: 0,
+                    effectiveMinutes: 0,
+                    otMinutes: 0,
+                    labelText: 'सवेतन रविवार',
+                    labelColor: 'bg-purple-100 text-purple-800 border-purple-300 font-bold',
+                    isPaid: true
+                };
+            }
+
+            const { inTime, outTime } = entry;
+            if (!inTime || !outTime) {
+                return {
+                    status: 'incomplete',
+                    category: 'empty',
+                    dutyCount: 0,
+                    workedMinutes: 0,
+                    effectiveMinutes: 0,
+                    otMinutes: 0,
+                    labelText: 'अधूरा समय',
+                    labelColor: 'bg-amber-100 text-amber-800 border-amber-300',
+                    isPaid: false
+                };
+            }
+
+            const [inH, inM] = inTime.split(':').map(Number);
+            const [outH, outM] = outTime.split(':').map(Number);
+
+            let inMinutes = inH * 60 + inM;
+            let outMinutes = outH * 60 + outM;
+
+            if (outMinutes < inMinutes) {
+                outMinutes += 24 * 60;
+            }
+
+            const totalRawMinutes = Math.max(0, outMinutes - inMinutes);
+            const deductLunch = entry.deductLunch !== false;
+            const lunchDeduction = calculateLunchDeduction(inMinutes, outMinutes, deductLunch);
+            const effectiveWorkMinutes = Math.max(0, totalRawMinutes - lunchDeduction);
+
+            if (isSunday) {
+                return {
+                    status: 'sunday_worked',
+                    category: 'sunday',
+                    dutyCount: 1.0,
+                    workedMinutes: totalRawMinutes,
+                    effectiveMinutes: effectiveWorkMinutes,
+                    otMinutes: effectiveWorkMinutes,
+                    labelText: `रवि + OT (${formatMinutes(effectiveWorkMinutes)})`,
+                    labelColor: 'bg-purple-100 text-purple-900 border-purple-400 font-black',
+                    isPaid: true
+                };
+            }
+
+            const stdFullDayMinutes = 480;
+            const stdHalfDayMinutes = 240;
+
+            let dutyCount = 0, otMinutes = 0, labelText = '', labelColor = '';
+
+            if (effectiveWorkMinutes >= stdFullDayMinutes) {
+                dutyCount = 1.0;
+                otMinutes = effectiveWorkMinutes - stdFullDayMinutes;
+                labelText = otMinutes > 0 ? `फुल डे + ${formatMinutes(otMinutes)} OT` : 'फुल डे (1.0)';
+                labelColor = otMinutes > 0 ? 'bg-emerald-100 text-emerald-900 border-emerald-400 font-bold' : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold';
+            } else if (effectiveWorkMinutes >= stdHalfDayMinutes) {
+                dutyCount = 0.5;
+                otMinutes = effectiveWorkMinutes - stdHalfDayMinutes;
+                labelText = otMinutes > 0 ? `हाफ डे + ${formatMinutes(otMinutes)} OT` : 'हाफ डे (0.5)';
+                labelColor = 'bg-amber-100 text-amber-900 border-amber-400 font-bold';
+            } else {
+                dutyCount = 0;
+                otMinutes = effectiveWorkMinutes;
+                labelText = `कम समय (${formatMinutes(effectiveWorkMinutes)} OT)`;
+                labelColor = 'bg-rose-50 text-rose-800 border-rose-300';
+            }
+
+            return {
+                status: 'regular',
+                category: 'work',
+                dutyCount,
+                workedMinutes: totalRawMinutes,
+                effectiveMinutes: effectiveWorkMinutes,
+                otMinutes,
+                labelText,
+                labelColor,
+                isPaid: dutyCount > 0
+            };
+        }
+
+        function formatMinutes(mins) {
+            const h = Math.floor(mins / 60);
+            const m = Math.round(mins % 60);
+            if (h === 0) return `${m}m`;
+            if (m === 0) return `${h}h`;
+            return `${h}h ${m}m`;
+        }
+
+        function format12Hour(time24) {
+            if (!time24) return '';
+            const [h, m] = time24.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const displayH = h % 12 || 12;
+            const displayM = m < 10 ? '0' + m : m;
+            return `${displayH}:${displayM} ${ampm}`;
+        }
+
+        function formatCurrencyWithPaise(amount) {
+            const val = Number(amount) || 0;
+            return `₹` + val.toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getCurrentMonthAdvances(year, month) {
+            const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+            return (window.advanceRecords || []).filter(item => item.date && item.date.startsWith(prefix));
+        }
+
+        window.renderApp = function() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('currentMonthYearLabel').textContent = `${HindiMonthNames[month]} ${year}`;
+
+            // Update Worker Header Badge (Show only if user filled it)
+            const wName = (window.appSettings.workerName || '').trim();
+            const cName = (window.appSettings.companyName || '').trim();
+            const wRole = (window.appSettings.workerRole || '').trim();
+            if (wName || cName) {
+                document.getElementById('headerWorkerBadge').textContent = `${wName || 'कर्मचारी'}${cName ? ' • ' + cName : ''}`;
+                document.getElementById('sbEmployeeInfoLine').textContent = `कर्मचारी: ${wName || '-'}${wRole ? ' (' + wRole + ')' : ''} | कंपनी: ${cName || '-'}`;
+            } else {
+                document.getElementById('headerWorkerBadge').textContent = `स्मार्ट ड्यूटी & वेतन ऐप`;
+                document.getElementById('sbEmployeeInfoLine').textContent = `प्रोफाइल नाम जोड़ने के लिए सेटिंग्स में जाएं`;
+            }
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let countFullDays = 0;
+            let countHalfDays = 0;
+            let countPaidSundays = 0;
+            let countCompanyHolidays = 0;
+            let countAbsent = 0;
+            let totalOTMinutes = 0;
+            let totalDutySum = 0;
+            let uncountedFutureSundays = 0;
+            let workDutyDaysSum = 0;
+
+            const gridContainer = document.getElementById('calendarDaysGrid');
+            const tableBody = document.getElementById('dutyTableBody');
+            gridContainer.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'min-h-[58px] sm:min-h-[105px] bg-slate-100/40 rounded-2xl border border-dashed border-slate-200/70 flex items-center justify-center select-none';
+                emptyCell.innerHTML = `<span class="text-[9px] sm:text-xs font-bold text-slate-300">खाली</span>`;
+                gridContainer.appendChild(emptyCell);
+            }
+
+            const monthRowsForPDF = [];
+
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(year, month, day);
+                const dayOfWeek = dateObj.getDay();
+                const isSunday = (dayOfWeek === 0);
+                const isToday = (dateStr === realTodayStr);
+                const isFuture = (dateStr > realTodayStr);
+
+                const entry = window.dutyRecords[dateStr] || null;
+                const dutyResult = calculateDutyForDate(dateStr, entry);
+
+                if (isSunday && isFuture && !entry) {
+                    uncountedFutureSundays++;
+                }
+
+                totalDutySum += dutyResult.dutyCount;
+                totalOTMinutes += dutyResult.otMinutes;
+
+                if (dutyResult.category === 'holiday') {
+                    countCompanyHolidays++;
+                } else if (dutyResult.category === 'sunday') {
+                    countPaidSundays++;
+                } else if (dutyResult.category === 'work') {
+                    workDutyDaysSum += dutyResult.dutyCount;
+                    if (dutyResult.dutyCount === 1.0) countFullDays++;
+                    else if (dutyResult.dutyCount === 0.5) countHalfDays++;
+                } else if (dutyResult.status === 'absent') {
+                    countAbsent++;
+                }
+
+                monthRowsForPDF.push({
+                    day,
+                    dateStr,
+                    dayName: HindiDayNames[dayOfWeek],
+                    isSunday,
+                    inTime: entry?.inTime && dutyResult.status !== 'absent' ? format12Hour(entry.inTime) : '-',
+                    outTime: entry?.outTime && dutyResult.status !== 'absent' ? format12Hour(entry.outTime) : '-',
+                    duration: dutyResult.effectiveMinutes > 0 ? formatMinutes(dutyResult.effectiveMinutes) : '-',
+                    statusText: dutyResult.labelText,
+                    dutyCount: dutyResult.dutyCount,
+                    otText: dutyResult.otMinutes > 0 ? formatMinutes(dutyResult.otMinutes) : '-',
+                    remark: entry?.remark || (dutyResult.status === 'holiday' ? 'कंपनी छुट्टी' : (dutyResult.status === 'absent' ? 'गैरहाजिर' : '-')),
+                    statusCode: dutyResult.status
+                });
+
+                // Calendar Day Card
+                const dayCard = document.createElement('div');
+                let cardBg = isSunday ? 'bg-purple-50/80 border-purple-200' : 'bg-white border-slate-200/90';
+                if (dutyResult.status === 'holiday') cardBg = 'bg-cyan-50/90 border-cyan-300';
+                else if (dutyResult.status === 'absent') cardBg = 'bg-rose-50/90 border-rose-300';
+                else if (dutyResult.status === 'future') cardBg = 'bg-slate-50/60 border-slate-200/60 opacity-60';
+
+                dayCard.className = `min-h-[72px] sm:min-h-[105px] p-1.5 sm:p-2.5 rounded-2xl border flex flex-col justify-between cursor-pointer transition active:scale-95 hover:border-indigo-400 group relative ${cardBg} ${isToday ? 'ring-2 ring-blue-600 bg-blue-50/30' : ''}`;
+                dayCard.onclick = () => openDutyModal(dateStr);
+
+                dayCard.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-xs sm:text-base ${isSunday ? 'text-rose-600' : 'text-slate-800'}">
+                            ${day}
+                        </span>
+                        <div class="flex items-center gap-0.5 sm:gap-1">
+                            ${isSunday ? '<span class="text-[8px] sm:text-[9px] font-extrabold text-purple-800 bg-purple-200 px-1 py-0.2 rounded">रवि</span>' : ''}
+                            ${dutyResult.status === 'holiday' ? '<span class="text-[8px] sm:text-[9px] font-black text-cyan-900 bg-cyan-200 px-1 py-0.2 rounded">अवकाश</span>' : ''}
+                            ${dutyResult.status === 'absent' ? '<span class="text-[8px] sm:text-[9px] font-black text-rose-700 bg-rose-200 px-1 py-0.2 rounded">छुट्टी</span>' : ''}
+                            ${isToday ? '<span class="text-[8px] sm:text-[9px] font-black text-blue-700 bg-blue-200 px-1 py-0.2 rounded animate-pulse">आज</span>' : ''}
+                        </div>
+                    </div>
+
+                    <div class="my-0.5">
+                        ${entry && (entry.inTime || entry.outTime) && dutyResult.status !== 'absent' ? `
+                            <div class="text-[8px] sm:text-xs text-slate-600 font-mono font-bold truncate">
+                                <span>${format12Hour(entry.inTime)}</span>-<span>${format12Hour(entry.outTime)}</span>
+                            </div>
+                        ` : ''}
+
+                        <div class="mt-0.5">
+                            <span class="inline-block text-[8px] sm:text-xs font-bold px-1 sm:px-1.5 py-0.2 rounded border ${dutyResult.labelColor} truncate max-w-full">
+                                ${dutyResult.labelText}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[8px] sm:text-xs font-semibold text-slate-500 border-t border-slate-200/80 pt-0.5">
+                        <span class="truncate">
+                            ${dutyResult.status === 'absent' ? '<b class="text-rose-600">0</b>' : 
+                              (dutyResult.dutyCount > 0 ? dutyResult.dutyCount + ' ड्यूटी' : '-')}
+                        </span>
+                        ${dutyResult.otMinutes > 0 ? `<span class="font-extrabold text-pink-600 bg-pink-50 px-0.5 rounded">OT:${formatMinutes(dutyResult.otMinutes)}</span>` : ''}
+                    </div>
+                `;
+                gridContainer.appendChild(dayCard);
+
+                // Table List Row
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-indigo-50/40 transition cursor-pointer ${isSunday ? 'bg-purple-50/30' : ''} ${dutyResult.status === 'holiday' ? 'bg-cyan-50/30' : ''} ${dutyResult.status === 'absent' ? 'bg-rose-50/40' : ''}`;
+                tr.onclick = (e) => {
+                    if (!e.target.closest('button')) openDutyModal(dateStr);
+                };
+                tr.innerHTML = `
+                    <td class="py-2.5 px-2 sm:px-3 font-bold text-slate-800 whitespace-nowrap">${day} ${HindiMonthNames[month]}</td>
+                    <td class="py-2.5 px-2 sm:px-3 font-semibold whitespace-nowrap ${isSunday ? 'font-bold text-rose-600' : 'text-slate-600'}">${HindiDayNames[dayOfWeek]}</td>
+                    <td onclick="event.stopPropagation(); window.openDutyModal('${dateStr}', 'timeIn')" class="py-2.5 px-2 sm:px-3 font-mono font-bold text-xs whitespace-nowrap text-indigo-700 hover:bg-indigo-100/70 rounded-lg cursor-pointer transition" title="समय बदलने के लिए क्लिक करें">
+                        <div class="flex items-center gap-1">
+                            <span>${entry?.inTime && dutyResult.status !== 'absent' ? format12Hour(entry.inTime) : '-'} - ${entry?.outTime && dutyResult.status !== 'absent' ? format12Hour(entry.outTime) : '-'}</span>
+                            <i data-lucide="clock" class="w-3 h-3 text-indigo-500 shrink-0"></i>
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-2 sm:px-3 text-xs font-semibold whitespace-nowrap">${dutyResult.effectiveMinutes > 0 ? formatMinutes(dutyResult.effectiveMinutes) : '-'}</td>
+                    <td class="py-2.5 px-2 sm:px-3">
+                        <span class="inline-block text-xs font-bold px-2 py-0.5 rounded-lg border ${dutyResult.labelColor} whitespace-nowrap">
+                            ${dutyResult.labelText}
+                        </span>
+                    </td>
+                    <td onclick="event.stopPropagation(); window.openDutyModal('${dateStr}', 'ot')" class="py-2.5 px-2 sm:px-3 font-black whitespace-nowrap hover:bg-pink-100/70 rounded-lg cursor-pointer transition ${dutyResult.otMinutes > 0 ? 'text-pink-600' : 'text-slate-400'}" title="ओवरटाइम जोड़ने के लिए क्लिक करें">
+                        ${dutyResult.otMinutes > 0 ? formatMinutes(dutyResult.otMinutes) : '+ OT'}
+                    </td>
+                    <td class="py-2.5 px-2 sm:px-3 text-xs text-slate-600 max-w-[130px] truncate">${entry?.remark || '-'}</td>
+                    <td class="py-2.5 px-2 sm:px-3 text-right no-print">
+                        <button onclick="openDutyModal('${dateStr}')" class="p-1 hover:bg-blue-100 text-blue-600 rounded-lg transition" title="एडिट">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            }
+
+            // Trailing empty cells for calendar grid
+            const totalCellsRendered = firstDayIndex + totalDaysInMonth;
+            const remainingTrailingCells = (7 - (totalCellsRendered % 7)) % 7;
+            for (let k = 0; k < remainingTrailingCells; k++) {
+                const trailEmptyCell = document.createElement('div');
+                trailEmptyCell.className = 'min-h-[58px] sm:min-h-[105px] bg-slate-50/30 rounded-2xl border border-dashed border-slate-200/40 flex items-center justify-center select-none';
+                trailEmptyCell.innerHTML = `<span class="text-[9px] sm:text-xs font-bold text-slate-200">•</span>`;
+                gridContainer.appendChild(trailEmptyCell);
+            }
+
+            // Update Top Stats Cards
+            document.getElementById('statFullDays').textContent = `${countFullDays} दिन`;
+            document.getElementById('statHalfDays').textContent = `${countHalfDays} दिन`;
+            document.getElementById('statSundaysAndHolidays').textContent = `${countPaidSundays + countCompanyHolidays} दिन`;
+            document.getElementById('statSunHolSub').textContent = `${countPaidSundays} रवि, ${countCompanyHolidays} छुट्टी`;
+            document.getElementById('statTotalOT').textContent = formatMinutes(totalOTMinutes);
+            document.getElementById('statNetDutyCount').textContent = totalDutySum.toFixed(1);
+
+            const futureAlert = document.getElementById('futureSundayAlert');
+            const futureCountText = document.getElementById('futureSundayCountText');
+            if (futureAlert && futureCountText) {
+                if (uncountedFutureSundays > 0) {
+                    futureAlert.classList.remove('hidden');
+                    futureCountText.textContent = `${uncountedFutureSundays} रविवार`;
+                } else {
+                    futureAlert.classList.add('hidden');
+                }
+            }
+
+            renderSalaryBreakdown(workDutyDaysSum, countCompanyHolidays, countPaidSundays, totalOTMinutes, totalDaysInMonth, countFullDays, countHalfDays, countAbsent, monthRowsForPDF);
+            renderAdvanceLedger(year, month);
+            updateToolsSettingsSummary();
+
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        };
+
+        // ================= FULL MONTH MULTI-PAGE A4 PDF GENERATOR (NO LEFT CLIPPING + EQUAL MARGINS + FULL ANURAJ WATERMARK) =================
+        window.generateFullMonthPDF = async function() {
+            const m = window.latestMonthMetrics;
+            if (!m || !m.monthRowsForPDF) {
+                window.showToast("डेटा तैयार हो रहा है, कृपया पुनः प्रयास करें।");
+                return;
+            }
+
+            window.showToast("पूरे महीने की PDF तैयार हो रही है, कृपया 2 सेकंड प्रतीक्षा करें...");
+
+            const wName = (window.appSettings.workerName || '').trim();
+            const wRole = (window.appSettings.workerRole || '').trim();
+            const cName = (window.appSettings.companyName || '').trim();
+
+            // Build repeating diagonal ANURAJ watermark grid covering the entire multi-page height
+            let watermarkItems = '';
+            for (let i = 0; i < 45; i++) {
+                watermarkItems += `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 140px; transform: rotate(-28deg); user-select: none;">
+                        <span style="font-size: 23px; font-weight: 900; color: rgba(67, 56, 202, 0.075); letter-spacing: 3px; text-transform: uppercase; white-space: nowrap;">
+                            ANURAJ • श्रमिक प्रो
+                        </span>
+                    </div>
+                `;
+            }
+
+            const rowsHtml = m.monthRowsForPDF.map(r => {
+                let rowBg = '#ffffff';
+                let statusColor = '#1e293b';
+                if (r.isSunday) rowBg = '#faf5ff';
+                if (r.statusCode === 'holiday') { rowBg = '#ecfeff'; statusColor = '#0e7490'; }
+                if (r.statusCode === 'absent') { rowBg = '#fff1f2'; statusColor = '#be123c'; }
+
+                const timeRangeStr = (r.inTime !== '-' && r.outTime !== '-')
+                    ? `<span dir="ltr" style="display:inline-block; white-space:nowrap;">${r.inTime} से ${r.outTime}</span>`
+                    : '-';
+
+                return `
+                    <tr class="pdf-page-break" style="background-color:${rowBg}; border-bottom: 1px solid #cbd5e1;">
+                        <td style="padding: 4px 4px; font-weight: 800; text-align: center; white-space: nowrap; border-right: 1px solid #cbd5e1; color: #0f172a;">${String(r.day).padStart(2, '0')} ${m.monthName}</td>
+                        <td style="padding: 4px 4px; text-align: center; white-space: nowrap; font-weight: ${r.isSunday ? '800' : '600'}; color: ${r.isSunday ? '#e11d48' : '#334155'}; border-right: 1px solid #cbd5e1;">${r.dayName}</td>
+                        <td style="padding: 4px 4px; text-align: center; white-space: nowrap; font-weight: 700; color: #1e293b; border-right: 1px solid #cbd5e1;">${timeRangeStr}</td>
+                        <td style="padding: 4px 4px; text-align: center; white-space: nowrap; font-weight: 700; border-right: 1px solid #cbd5e1;">${r.duration}</td>
+                        <td style="padding: 4px 4px; text-align: center; font-weight: 700; color: ${statusColor}; border-right: 1px solid #cbd5e1;">${r.statusText}</td>
+                        <td style="padding: 4px 4px; text-align: center; font-weight: 800; border-right: 1px solid #cbd5e1;">${r.dutyCount > 0 ? r.dutyCount : '0'}</td>
+                        <td style="padding: 4px 4px; text-align: center; white-space: nowrap; font-weight: 800; color: ${r.otText !== '-' ? '#db2777' : '#94a3b8'}; border-right: 1px solid #cbd5e1;">${r.otText}</td>
+                        <td style="padding: 4px 4px; text-align: center; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${r.remark}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const advanceHtml = m.monthAdvances && m.monthAdvances.length > 0 ? `
+                <div class="pdf-page-break" style="margin-top: 10px; border: 1.5px solid #fecdd3; background: #fff1f2; border-radius: 8px; padding: 8px; position: relative; z-index: 2;">
+                    <div style="font-weight: 800; font-size: 11px; color: #9f1239; margin-bottom: 5px; text-align: center;">
+                        माह में लिए गए एडवांस / उधार का विवरण (कुल एडवांस: -${formatCurrencyWithPaise(m.advanceTotal)})
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; background: #ffffff; text-align: center;">
+                        <thead>
+                            <tr style="background: #ffe4e6; color: #881337;">
+                                <th style="padding: 4px 6px; border: 1px solid #fecdd3; width: 25%;">तारीख</th>
+                                <th style="padding: 4px 6px; border: 1px solid #fecdd3; width: 50%;">विवरण / कारण</th>
+                                <th style="padding: 4px 6px; border: 1px solid #fecdd3; width: 25%;">राशि</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${m.monthAdvances.map(a => `
+                                <tr>
+                                    <td style="padding: 4px 6px; border: 1px solid #fecdd3; font-weight: 700; white-space: nowrap;">${a.date}</td>
+                                    <td style="padding: 4px 6px; border: 1px solid #fecdd3;">${a.note || 'नकद एडवांस'}</td>
+                                    <td style="padding: 4px 6px; border: 1px solid #fecdd3; font-weight: 800; color: #be123c;">-${formatCurrencyWithPaise(a.amount)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '';
+
+            const workerHeaderLine = (wName || wRole || cName)
+                ? `<p style="font-size: 11px; font-weight: 700; color: #4338ca; margin: 3px 0 0 0;">
+                    कर्मचारी: <b>${wName || '____________________'}</b> ${wRole ? `(${wRole})` : ''} &nbsp;|&nbsp; कंपनी/ठेकेदार: <b>${cName || '____________________'}</b>
+                   </p>`
+                : `<p style="font-size: 10.5px; font-weight: 700; color: #475569; margin: 4px 0 0 0;">
+                    कर्मचारी नाम: ________________________ &nbsp;&nbsp;|&nbsp;&nbsp; कंपनी/ठेकेदार: ________________________
+                   </p>`;
+
+            const wrapper = document.getElementById('pdfMasterWrapper');
+            const pdfContainer = document.getElementById('pdfPrintableContent');
+
+            // Configure exact 794px sheet with centered 690px inner table so 52px is equally left on both Left and Right sides
+            pdfContainer.style.width = '794px';
+            pdfContainer.style.padding = '24px 0px';
+            pdfContainer.style.margin = '0 auto';
+            pdfContainer.style.backgroundColor = '#ffffff';
+
+            pdfContainer.innerHTML = `
+                <!-- Full-Page Repeating ANURAJ Watermark Overlay -->
+                <div style="position: absolute; top: 0; left: 0; width: 794px; bottom: 0; pointer-events: none; z-index: 5; display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; align-content: start;">
+                    ${watermarkItems}
+                </div>
+
+                <!-- Strictly Centered 690px Box inside 794px Sheet => Guaranteed 52px Left Margin & 52px Right Margin -->
+                <div style="width: 690px; margin: 0 auto; font-family: 'Hind', 'Poppins', sans-serif; position: relative; z-index: 2; box-sizing: border-box;">
+                    
+                    <!-- Top Header Banner -->
+                    <table style="width: 100%; border-collapse: collapse; border-bottom: 3px solid #3730a3; padding-bottom: 6px; margin-bottom: 10px;">
+                        <tr>
+                            <td style="text-align: left; vertical-align: middle; padding-bottom: 6px;">
+                                <div style="font-size: 17px; font-weight: 900; color: #1e1b4b; line-height: 1.2;">श्रमिक प्रो (Shramik Pro) - मासिक वेतन व हाजिरी पत्रक</div>
+                                ${workerHeaderLine}
+                            </td>
+                            <td style="text-align: right; vertical-align: middle; padding-bottom: 6px; white-space: nowrap;">
+                                <div style="background: #3730a3; color: #ffffff; font-weight: 900; font-size: 11.5px; padding: 4px 10px; border-radius: 6px; display: inline-block;">
+                                    माह: ${m.monthName} ${m.year} (${m.daysCount} दिन)
+                                </div>
+                                <div style="font-size: 9px; color: #4338ca; font-weight: 800; margin-top: 3px;">दिनांक: ${new Date().toLocaleDateString('hi-IN')} | Powered by ANURAJ</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- COMPLETE SALARY BREAKDOWN BOX -->
+                    <div class="pdf-page-break" style="border: 2px solid #c7d2fe; background: #f8fafc; border-radius: 10px; padding: 9px; margin-bottom: 10px;">
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px;">
+                            <tr>
+                                <td style="font-size: 11.5px; font-weight: 900; color: #1e1b4b; text-align: left;">1. संपूर्ण वेतन ब्रेकडाउन (Salary & Bonus Breakdown)</td>
+                                <td style="font-size: 11px; font-weight: 800; color: #3730a3; text-align: right;">कुल सवेतन दिन: ${m.totalPaidDays.toFixed(1)} दिन | कुल OT: ${m.totalOtFormatted}</td>
+                            </tr>
+                        </table>
+
+                        <!-- Earnings Grid -->
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 9.8px; text-align: center; table-layout: fixed;">
+                            <tr style="background: #e0e7ff; color: #1e1b4b; font-weight: 800;">
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1;">दैनिक दर (1d)</td>
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1;">ड्यूटी वेतन (${m.workDutyDays.toFixed(1)}d)</td>
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1;">रवि (${m.paidSundays}d) + छुट्टी (${m.companyHolidays}d)</td>
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1;">ओवरटाइम (${m.totalOtFormatted})</td>
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1;">फुल मंथ बोनस + भत्ता</td>
+                                <td style="padding: 4px 3px; border: 1px solid #cbd5e1; background: #dcfce7; color: #14532d;">कुल सकल वेतन (Gross)</td>
+                            </tr>
+                            <tr style="background: #ffffff; font-weight: 800; font-size: 10.5px;">
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1;">${formatCurrencyWithPaise(m.perDayRate)}</td>
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1; color: #047857;">${formatCurrencyWithPaise(m.workEarnings)}</td>
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1; color: #6d28d9;">${formatCurrencyWithPaise(m.sundayEarnings + m.holidayEarnings)}</td>
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1; color: #be185d;">${formatCurrencyWithPaise(m.otEarnings)}</td>
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1; color: #b45309;">+${formatCurrencyWithPaise(m.appliedFullBonus + m.allowance)}</td>
+                                <td style="padding: 5px 3px; border: 1px solid #cbd5e1; background: #f0fdf4; color: #14532d; font-size: 11.5px;">${formatCurrencyWithPaise(m.grossSalary)}</td>
+                            </tr>
+                        </table>
+
+                        <!-- Deductions & Net Pay Row -->
+                        <table style="width: 100%; border-collapse: collapse; font-size: 9.8px; text-align: center; table-layout: fixed;">
+                            <tr style="background: #ffe4e6; color: #881337; font-weight: 800;">
+                                <td style="padding: 4px 4px; border: 1px solid #fecdd3;">मासिक एडवांस (${m.monthAdvances.length} बार)</td>
+                                <td style="padding: 4px 4px; border: 1px solid #fecdd3;">PF / ESI कटौती</td>
+                                <td style="padding: 4px 4px; border: 1px solid #fecdd3;">कैंटीन / रूम कटौती</td>
+                                <td style="padding: 4px 4px; border: 1px solid #fecdd3;">कुल कटौती (Total Cut)</td>
+                                <td style="padding: 4px 6px; border: 1px solid #1e1b4b; background: #1e1b4b; color: #fcd34d;">शुद्ध देय वेतन (Net In-Hand Salary)</td>
+                            </tr>
+                            <tr style="background: #ffffff; font-weight: 800; font-size: 10.5px;">
+                                <td style="padding: 5px 4px; border: 1px solid #fecdd3; color: #be123c;">-${formatCurrencyWithPaise(m.advanceTotal)}</td>
+                                <td style="padding: 5px 4px; border: 1px solid #fecdd3; color: #c2410c;">-${formatCurrencyWithPaise(m.pfDeduction)}</td>
+                                <td style="padding: 5px 4px; border: 1px solid #fecdd3; color: #b45309;">-${formatCurrencyWithPaise(m.otherDeduction)}</td>
+                                <td style="padding: 5px 4px; border: 1px solid #fecdd3; color: #be123c;">-${formatCurrencyWithPaise(m.totalDeductions)}</td>
+                                <td style="padding: 5px 6px; border: 1px solid #1e1b4b; background: #312e81; color: #fde047; font-size: 13px; font-weight: 900;">${formatCurrencyWithPaise(m.netInHandSalary)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <!-- FULL MONTH ATTENDANCE TABLE -->
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 900; color: #1e1b4b; margin-bottom: 5px; text-align: center;">
+                            2. पूरे महीने का दैनिक हाजिरी व ओवरटाइम रजिस्टर (01 ${m.monthName} से ${m.daysCount} ${m.monthName} ${m.year})
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #475569; font-size: 9.5px; table-layout: fixed;">
+                            <thead>
+                                <tr style="background: #1e293b; color: #ffffff; text-align: center; font-weight: 800;">
+                                    <th style="width: 13%; padding: 5px 3px; border-right: 1px solid #475569;">तारीख</th>
+                                    <th style="width: 10%; padding: 5px 3px; border-right: 1px solid #475569;">वार</th>
+                                    <th style="width: 22%; padding: 5px 3px; border-right: 1px solid #475569;">समय (In से Out)</th>
+                                    <th style="width: 9%; padding: 5px 3px; border-right: 1px solid #475569;">अवधि</th>
+                                    <th style="width: 18%; padding: 5px 3px; border-right: 1px solid #475569;">हाजिरी स्थिति</th>
+                                    <th style="width: 7%; padding: 5px 3px; border-right: 1px solid #475569;">ड्यूटी</th>
+                                    <th style="width: 8%; padding: 5px 3px; border-right: 1px solid #475569;">OT</th>
+                                    <th style="width: 13%; padding: 5px 3px;">विवरण</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    ${advanceHtml}
+
+                    <!-- Signature Footer -->
+                    <table class="pdf-page-break" style="width: 100%; margin-top: 16px; padding-top: 8px; border-top: 1px dashed #94a3b8; font-size: 10px; font-weight: 700; color: #475569;">
+                        <tr>
+                            <td style="text-align: left; width: 40%;">कर्मचारी हस्ताक्षर: ______________________</td>
+                            <td style="text-align: center; width: 20%; font-size: 9px; font-weight: 900; color: #4338ca;">ANURAJ VERIFIED</td>
+                            <td style="text-align: right; width: 40%;">सुपरवाइजर / ठेकेदार हस्ताक्षर: ______________________</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
+            // Temporarily bring wrapper into clean top-left render viewport so html2canvas never clips left edge
+            const prevScrollY = window.scrollY;
+            window.scrollTo(0, 0);
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '0px';
+            wrapper.style.top = '0px';
+            wrapper.style.opacity = '1';
+            wrapper.style.zIndex = '99999';
+
+            await new Promise(r => setTimeout(r, 150));
+
+            const opt = {
+                margin: [0.12, 0, 0.12, 0],
+                filename: `Shramik_Pro_Full_Report_${m.monthName}_${m.year}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    x: 0,
+                    y: 0,
+                    scrollY: 0,
+                    scrollX: 0,
+                    width: 794,
+                    windowWidth: 794
+                },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
+
+            try {
+                await html2pdf().set(opt).from(pdfContainer).save();
+                window.showToast('पूरे महीने की PDF बिना कटे डाउनलोड हो गई!');
+            } catch (err) {
+                console.error("PDF generation error:", err);
+                window.showToast('PDF त्रुटि, कृपया पुनः प्रयास करें।');
+            } finally {
+                wrapper.style.opacity = '0';
+                wrapper.style.zIndex = '-9999';
+                window.scrollTo(0, prevScrollY);
+            }
+        };
+
+        document.getElementById('exportPdfBtn')?.addEventListener('click', window.generateFullMonthPDF);
+        document.getElementById('topQuickPdfBtn')?.addEventListener('click', window.generateFullMonthPDF);
+
+        // Helper: Open native time picker when clicking anywhere inside the time column/card OR directly on the written time
+        window.triggerTimePicker = function(inputId) {
+            const inputEl = document.getElementById(inputId);
+            if (!inputEl) return;
+            handleStatusTypeChange('worked');
+            inputEl.focus();
+            if (typeof inputEl.showPicker === 'function') {
+                try {
+                    inputEl.showPicker();
+                } catch (e) {
+                    inputEl.click();
+                }
+            }
+        };
+
+        // Helper: Quick 1-Click Overtime (OT) Adder (+1h, +2h, +3h, +4h, +30m)
+        window.quickAddOTMinutes = function(extraMins) {
+            handleStatusTypeChange('worked');
+            const timeInEl = document.getElementById('timeIn');
+            const timeOutEl = document.getElementById('timeOut');
+
+            // If no shift is filled yet, set standard 8h full day (09:00 to 17:30) first
+            if (!timeInEl.value) {
+                timeInEl.value = '09:00';
+            }
+            if (!timeOutEl.value) {
+                timeOutEl.value = '17:30';
+                document.getElementById('deductLunchToggle').checked = true;
+            }
+
+            const [outH, outM] = timeOutEl.value.split(':').map(Number);
+            let totalOutMins = (outH * 60 + outM + extraMins) % (24 * 60);
+            if (totalOutMins < 0) totalOutMins += 24 * 60;
+
+            const newH = String(Math.floor(totalOutMins / 60)).padStart(2, '0');
+            const newM = String(totalOutMins % 60).padStart(2, '0');
+            timeOutEl.value = `${newH}:${newM}`;
+
+            updateModalLiveCalculation();
+            window.showToast(`+${formatMinutes(extraMins)} ओवरटाइम जुड़ गया (Out: ${format12Hour(timeOutEl.value)})`);
+        };
+
+        // Duty Modal Controls
+        window.openDutyModal = function(dateStr, focusTarget = null) {
+            currentEditDateStr = dateStr;
+            const dateObj = new Date(dateStr + "T00:00:00");
+            const dayOfWeek = dateObj.getDay();
+            const isSunday = (dayOfWeek === 0);
+
+            const day = dateObj.getDate();
+            const month = dateObj.getMonth();
+            const year = dateObj.getFullYear();
+
+            document.getElementById('modalDateTitle').textContent = `${day} ${HindiMonthNames[month]} ${year} (${HindiDayNames[dayOfWeek]})`;
+            
+            const sundayNotice = document.getElementById('modalSundayNotice');
+            if (sundayNotice) {
+                if (isSunday) sundayNotice.classList.remove('hidden');
+                else sundayNotice.classList.add('hidden');
+            }
+
+            const existingRecord = window.dutyRecords[dateStr] || null;
+            let statusType = 'worked';
+            if (existingRecord) {
+                statusType = existingRecord.statusType || (existingRecord.inTime || existingRecord.outTime ? 'worked' : 'paid_off');
+            } else if (isSunday) {
+                statusType = 'paid_off';
+            }
+
+            document.getElementById('timeIn').value = existingRecord?.inTime || '';
+            document.getElementById('timeOut').value = existingRecord?.outTime || '';
+            document.getElementById('entryRemark').value = existingRecord?.remark || '';
+            document.getElementById('deductLunchToggle').checked = existingRecord?.deductLunch !== false;
+
+            handleStatusTypeChange(statusType);
+            updateModalLiveCalculation();
+
+            document.getElementById('entryModal')?.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+
+            if (focusTarget === 'timeIn') {
+                setTimeout(() => window.triggerTimePicker('timeIn'), 120);
+            }
+        };
+
+        function renderAdvanceLedger(year, month) {
+            const listEl = document.getElementById('advanceListContainer');
+            const badgeEl = document.getElementById('advMonthTotalBadge');
+            if (!listEl) return;
+
+            const monthAdvances = getCurrentMonthAdvances(year, month);
+            const totalAdv = monthAdvances.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+
+            if (badgeEl) badgeEl.textContent = formatCurrencyWithPaise(totalAdv);
+
+            if (monthAdvances.length === 0) {
+                listEl.innerHTML = `
+                    <div class="py-8 text-center text-slate-400 text-xs">
+                        <p class="font-bold">इस महीने कोई एडवांस / उधार दर्ज नहीं है।</p>
+                        <p class="text-[11px] mt-0.5">यदि आपने मालिक/ठेकेदार से बीच में पैसे लिए हैं तो बाईं ओर से जोड़ें।</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            monthAdvances.sort((a, b) => a.date.localeCompare(b.date)).forEach(item => {
+                const dParts = item.date.split('-');
+                const row = document.createElement('div');
+                row.className = 'py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 rounded-xl transition';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <span class="px-2 py-1 bg-rose-100 text-rose-800 font-black rounded-lg text-xs">${Number(dParts[2])} ${HindiMonthNames[Number(dParts[1]) - 1]}</span>
+                        <div>
+                            <p class="font-bold text-slate-800 text-xs sm:text-sm">${item.note || 'नकद एडवांस'}</p>
+                            <p class="text-[10px] text-slate-400">${item.date}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-black text-rose-600 text-sm sm:text-base">- ${formatCurrencyWithPaise(item.amount)}</span>
+                        <button onclick="window.deleteAdvanceEntry('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="हटाएं">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        window.deleteAdvanceEntry = function(id) {
+            window.advanceRecords = (window.advanceRecords || []).filter(item => item.id !== id);
+            window.saveRecordsLocal();
+            window.renderApp();
+            window.showToast('एडवांस प्रविष्टि हटा दी गई!');
+        };
+
+        document.getElementById('addAdvanceEntryBtn')?.addEventListener('click', () => {
+            const dateVal = document.getElementById('advDateInput')?.value || realTodayStr;
+            const amountVal = Number(document.getElementById('advAmountInput')?.value) || 0;
+            const noteVal = document.getElementById('advNoteInput')?.value.trim() || 'नकद एडवांस / खर्ची';
+
+            if (amountVal <= 0) {
+                window.showToast('कृपया सही एडवांस राशि दर्ज करें!');
+                return;
+            }
+
+            window.advanceRecords.push({
+                id: 'adv_' + Date.now(),
+                date: dateVal,
+                amount: amountVal,
+                note: noteVal
+            });
+
+            document.getElementById('advAmountInput').value = '';
+            document.getElementById('advNoteInput').value = '';
+
+            window.saveRecordsLocal();
+            window.renderApp();
+            window.showToast(`₹${amountVal} एडवांस खाते में जोड़ा गया!`);
+        });
+
+        function renderSalaryBreakdown(workDutyDays, companyHolidays, paidSundays, totalOtMinutes, daysInMonth, countFullDays, countHalfDays, countAbsent, monthRowsForPDF) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysCount = daysInMonth || 30;
+
+            document.getElementById('sbMonthDaysBadge').textContent = `${daysCount} दिन का माह`;
+
+            let perDayRate = 0;
+            const sbRateNote = document.getElementById('sbRateNote');
+            if (window.appSettings?.salaryType === 'monthly') {
+                const baseMonthly = Number(window.appSettings?.baseMonthlySalary) || 0;
+                perDayRate = baseMonthly / daysCount;
+                if (sbRateNote) sbRateNote.textContent = `${formatCurrencyWithPaise(baseMonthly)} ÷ ${daysCount}`;
+            } else {
+                perDayRate = Number(window.appSettings?.baseDailyRate) || 0;
+                if (sbRateNote) sbRateNote.textContent = `दैनिक मजदूरी दर (फिक्स)`;
+            }
+
+            let otHourlyRate = 0;
+            if (window.appSettings?.autoCalcOt !== false) {
+                otHourlyRate = perDayRate / 8.0;
+            } else {
+                otHourlyRate = Number(window.appSettings?.hourlyOtRate) || (perDayRate / 8.0);
+            }
+
+            const workEarnings = workDutyDays * perDayRate;
+            const holidayEarnings = companyHolidays * perDayRate;
+            const sundayEarnings = paidSundays * perDayRate;
+            const otEarnings = (totalOtMinutes / 60.0) * otHourlyRate;
+            const allowance = Number(window.appSettings?.monthlyAllowance) || 0;
+
+            // Calculate Full Month Attendance Bonus based on manual/auto setting
+            const configuredBonus = Number(window.appSettings?.fullMonthBonusAmount) || 0;
+            const bonusMode = window.appSettings?.bonusMode || 'manual_off';
+            let appliedFullBonus = 0;
+            let bonusNoteText = 'बोनस बंद है (टिक करके जोड़ें)';
+            const quickBonusCheckbox = document.getElementById('quickToggleFullBonus');
+
+            if (bonusMode === 'manual_on') {
+                appliedFullBonus = configuredBonus;
+                bonusNoteText = 'मैनुअल रूप से लागू (Active)';
+                if (quickBonusCheckbox) quickBonusCheckbox.checked = true;
+            } else if (bonusMode === 'auto_no_absent') {
+                if (countAbsent === 0 && (workDutyDays + companyHolidays + paidSundays) > 0) {
+                    appliedFullBonus = configuredBonus;
+                    bonusNoteText = '0 छुट्टी पर ऑटो लागू';
+                    if (quickBonusCheckbox) quickBonusCheckbox.checked = true;
+                } else {
+                    appliedFullBonus = 0;
+                    bonusNoteText = `${countAbsent} गैरहाजिर के कारण लागू नहीं`;
+                    if (quickBonusCheckbox) quickBonusCheckbox.checked = false;
+                }
+            } else {
+                appliedFullBonus = 0;
+                if (quickBonusCheckbox) quickBonusCheckbox.checked = false;
+            }
+
+            const grossSalary = workEarnings + holidayEarnings + sundayEarnings + otEarnings + allowance + appliedFullBonus;
+
+            // Deductions
+            const monthAdvances = getCurrentMonthAdvances(year, month);
+            const advanceTotal = monthAdvances.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            const pfDeduction = Number(window.appSettings?.pfDeduction) || 0;
+            const otherDeduction = Number(window.appSettings?.otherDeduction) || 0;
+            const totalDeductions = advanceTotal + pfDeduction + otherDeduction;
+
+            const netInHandSalary = grossSalary - totalDeductions;
+
+            // Populate UI
+            document.getElementById('sbPerDayRate').textContent = formatCurrencyWithPaise(perDayRate);
+            document.getElementById('sbWorkEarnings').textContent = formatCurrencyWithPaise(workEarnings);
+            document.getElementById('sbWorkDaysDetail').textContent = `${workDutyDays.toFixed(1)} दिन कार्य उपस्थिति`;
+
+            document.getElementById('sbHolidayEarnings').textContent = formatCurrencyWithPaise(holidayEarnings);
+            document.getElementById('sbHolidayDetail').textContent = `${companyHolidays} दिन सवेतन छुट्टी`;
+
+            document.getElementById('sbSundayEarnings').textContent = formatCurrencyWithPaise(sundayEarnings);
+            document.getElementById('sbSundayDetail').textContent = `${paidSundays} दिन सवेतन रविवार`;
+
+            document.getElementById('sbOtEarnings').textContent = formatCurrencyWithPaise(otEarnings);
+            document.getElementById('sbOtHoursDetail').textContent = `@ ${formatCurrencyWithPaise(otHourlyRate)}/h (${formatMinutes(totalOtMinutes)})`;
+
+            document.getElementById('sbAllowanceAmount').textContent = `+ ${formatCurrencyWithPaise(allowance)}`;
+            document.getElementById('sbFullBonusAmount').textContent = `+ ${formatCurrencyWithPaise(appliedFullBonus)}`;
+            document.getElementById('sbBonusStatusNote').textContent = bonusNoteText;
+            document.getElementById('sbGrossSalary').textContent = formatCurrencyWithPaise(grossSalary);
+
+            document.getElementById('sbAdvanceDeduct').textContent = `- ${formatCurrencyWithPaise(advanceTotal)}`;
+            document.getElementById('sbAdvanceCountNote').textContent = `${monthAdvances.length} बार में लिया`;
+            document.getElementById('sbPfEsiDeduct').textContent = `- ${formatCurrencyWithPaise(pfDeduction)}`;
+            document.getElementById('sbOtherDeduct').textContent = `- ${formatCurrencyWithPaise(otherDeduction)}`;
+            document.getElementById('sbTotalDeductions').textContent = `- ${formatCurrencyWithPaise(totalDeductions)}`;
+
+            document.getElementById('sbFormulaGross').textContent = formatCurrencyWithPaise(grossSalary);
+            document.getElementById('sbFormulaDeduct').textContent = formatCurrencyWithPaise(totalDeductions);
+            document.getElementById('sbTotalSalary').textContent = formatCurrencyWithPaise(netInHandSalary);
+
+            document.getElementById('statTotalDeductions').textContent = formatCurrencyWithPaise(totalDeductions);
+            document.getElementById('statEstSalary').textContent = formatCurrencyWithPaise(netInHandSalary);
+
+            // Store snapshot for PDF & WhatsApp
+            window.latestMonthMetrics = {
+                year,
+                month,
+                monthName: HindiMonthNames[month],
+                daysCount,
+                countFullDays,
+                countHalfDays,
+                workDutyDays,
+                companyHolidays,
+                paidSundays,
+                countAbsent,
+                totalPaidDays: workDutyDays + companyHolidays + paidSundays,
+                totalOtMinutes,
+                totalOtFormatted: formatMinutes(totalOtMinutes),
+                perDayRate,
+                otHourlyRate,
+                workEarnings,
+                holidayEarnings,
+                sundayEarnings,
+                otEarnings,
+                allowance,
+                appliedFullBonus,
+                grossSalary,
+                advanceTotal,
+                monthAdvances,
+                pfDeduction,
+                otherDeduction,
+                totalDeductions,
+                netInHandSalary,
+                monthRowsForPDF
+            };
+        }
+
+        // Quick checkbox on Salary Slip to manually toggle Full Month Bonus ON/OFF
+        document.getElementById('quickToggleFullBonus')?.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                window.appSettings.bonusMode = 'manual_on';
+                if (!window.appSettings.fullMonthBonusAmount || window.appSettings.fullMonthBonusAmount <= 0) {
+                    window.appSettings.fullMonthBonusAmount = 1000;
+                }
+                window.showToast(`फुल मंथ बोनस (+₹${window.appSettings.fullMonthBonusAmount}) जोड़ा गया!`);
+            } else {
+                window.appSettings.bonusMode = 'manual_off';
+                window.showToast('फुल मंथ बोनस हटाया गया।');
+            }
+            window.saveSettingsLocal();
+            window.renderApp();
+        });
+
+        function updateToolsSettingsSummary() {
+            document.getElementById('settingsDisplayWorker').textContent = window.appSettings.workerName?.trim() || 'खाली (सेट करें)';
+            document.getElementById('settingsDisplayRole').textContent = window.appSettings.workerRole?.trim() || 'पद खाली';
+            document.getElementById('settingsDisplayCompany').textContent = window.appSettings.companyName?.trim() || 'खाली (सेट करें)';
+
+            if (window.appSettings?.salaryType === 'monthly') {
+                document.getElementById('settingsDisplayType').textContent = "मासिक निश्चित";
+                document.getElementById('settingsDisplayAmount').textContent = formatCurrencyWithPaise(window.appSettings?.baseMonthlySalary);
+            } else {
+                document.getElementById('settingsDisplayType').textContent = "दैनिक मजदूरी";
+                document.getElementById('settingsDisplayAmount').textContent = formatCurrencyWithPaise(window.appSettings?.baseDailyRate);
+            }
+
+            const totalAllowAndBonus = (Number(window.appSettings.monthlyAllowance) || 0) + (window.appSettings.bonusMode !== 'manual_off' ? (Number(window.appSettings.fullMonthBonusAmount) || 0) : 0);
+            document.getElementById('settingsDisplayAllow').textContent = formatCurrencyWithPaise(totalAllowAndBonus);
+            const fixedCut = (Number(window.appSettings.pfDeduction) || 0) + (Number(window.appSettings.otherDeduction) || 0);
+            document.getElementById('settingsDisplayDeduct').textContent = formatCurrencyWithPaise(fixedCut);
+        }
+
+        // ================= WHATSAPP SALARY SLIP SHARE (NEW PRO FEATURE) =================
+        window.shareSalaryOnWhatsApp = function() {
+            const m = window.latestMonthMetrics;
+            if (!m) return;
+
+            const wName = window.appSettings.workerName?.trim() || '-';
+            const cName = window.appSettings.companyName?.trim() || '-';
+
+            const lines = [
+                `📋 *श्रमिक प्रो - मासिक वेतन व ड्यूटी हिसाब*`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                ...(wName !== '-' ? [`👤 *कर्मचारी:* ${wName}${window.appSettings.workerRole ? ' (' + window.appSettings.workerRole + ')' : ''}`] : []),
+                ...(cName !== '-' ? [`🏭 *कंपनी:* ${cName}`] : []),
+                `📅 *माह:* ${m.monthName} ${m.year} (${m.daysCount} दिन)`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                `✅ *उपस्थिति सारांश:*`,
+                `• कार्य ड्यूटी: ${m.workDutyDays.toFixed(1)} दिन (फुल: ${m.countFullDays}, हाफ: ${m.countHalfDays})`,
+                `• सवेतन रविवार: ${m.paidSundays} दिन`,
+                `• कंपनी छुट्टी: ${m.companyHolidays} दिन`,
+                `• कुल सवेतन दिन: *${m.totalPaidDays.toFixed(1)} दिन*`,
+                `• कुल ओवरटाइम (OT): *${m.totalOtFormatted}*`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                `💰 *कमाई विवरण (Earnings):*`,
+                `• प्रति दिन दर: ${formatCurrencyWithPaise(m.perDayRate)}`,
+                `• ड्यूटी वेतन: ${formatCurrencyWithPaise(m.workEarnings)}`,
+                `• रविवार + छुट्टी वेतन: ${formatCurrencyWithPaise(m.sundayEarnings + m.holidayEarnings)}`,
+                `• ओवरटाइम कमाई: ${formatCurrencyWithPaise(m.otEarnings)}`,
+                ...(m.appliedFullBonus > 0 ? [`• फुल मंथ ड्यूटी बोनस: +${formatCurrencyWithPaise(m.appliedFullBonus)}`] : []),
+                ...(m.allowance > 0 ? [`• अन्य भत्ता: +${formatCurrencyWithPaise(m.allowance)}`] : []),
+                `👉 *कुल सकल वेतन (Gross): ${formatCurrencyWithPaise(m.grossSalary)}*`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                `📉 *कटौती (Deductions):*`,
+                `• मासिक एडवांस: -${formatCurrencyWithPaise(m.advanceTotal)}`,
+                ...(m.pfDeduction + m.otherDeduction > 0 ? [`• PF/ESI व अन्य: -${formatCurrencyWithPaise(m.pfDeduction + m.otherDeduction)}`] : []),
+                `👉 *कुल कटौती: -${formatCurrencyWithPaise(m.totalDeductions)}*`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                `🏆 *शुद्ध देय वेतन (Net Pay): ${formatCurrencyWithPaise(m.netInHandSalary)}*`,
+                `━━━━━━━━━━━━━━━━━━━━`,
+                `_Generated via Shramik Pro (By Anuraj)_`
+            ];
+
+            const text = encodeURIComponent(lines.join('\n'));
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        };
+
+        function setRadioStatus(statusType) {
+            const radios = document.getElementsByName('dayStatus');
+            radios.forEach(r => { r.checked = (r.value === statusType); });
+
+            const workLbl = document.getElementById('labelStatusWork');
+            const holLbl = document.getElementById('labelStatusHoliday');
+            const paidLbl = document.getElementById('labelStatusPaidOff');
+            const absLbl = document.getElementById('labelStatusAbsent');
+
+            workLbl?.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50/50');
+            holLbl?.classList.remove('ring-2', 'ring-cyan-600', 'bg-cyan-50/50');
+            paidLbl?.classList.remove('ring-2', 'ring-indigo-600', 'bg-indigo-50/50');
+            absLbl?.classList.remove('ring-2', 'ring-rose-600', 'bg-rose-50/50');
+
+            if (statusType === 'worked') workLbl?.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50/50');
+            if (statusType === 'holiday') holLbl?.classList.add('ring-2', 'ring-cyan-600', 'bg-cyan-50/50');
+            if (statusType === 'paid_off') paidLbl?.classList.add('ring-2', 'ring-indigo-600', 'bg-indigo-50/50');
+            if (statusType === 'absent') absLbl?.classList.add('ring-2', 'ring-rose-600', 'bg-rose-50/50');
+        }
+
+        function getSelectedDayStatus() {
+            const radios = document.getElementsByName('dayStatus');
+            for (let r of radios) if (r.checked) return r.value;
+            return 'worked';
+        }
+
+        function handleStatusTypeChange(statusType) {
+            const timeContainer = document.getElementById('timeInputsContainer');
+            const presetsContainer = document.getElementById('timePresetsContainer');
+
+            if (statusType === 'absent' || statusType === 'paid_off' || statusType === 'holiday') {
+                timeContainer?.classList.add('opacity-40', 'pointer-events-none');
+                presetsContainer?.classList.add('opacity-40', 'pointer-events-none');
+            } else {
+                timeContainer?.classList.remove('opacity-40', 'pointer-events-none');
+                presetsContainer?.classList.remove('opacity-40', 'pointer-events-none');
+            }
+            setRadioStatus(statusType);
+            updateModalLiveCalculation();
+        }
+
+        function updateModalLiveCalculation() {
+            if (!currentEditDateStr) return;
+
+            const statusType = getSelectedDayStatus();
+            const inTime = document.getElementById('timeIn')?.value || '';
+            const outTime = document.getElementById('timeOut')?.value || '';
+            const remark = document.getElementById('entryRemark')?.value || '';
+            const deductLunch = document.getElementById('deductLunchToggle')?.checked !== false;
+
+            const tempEntry = {
+                statusType,
+                inTime: statusType === 'worked' ? inTime : '',
+                outTime: statusType === 'worked' ? outTime : '',
+                deductLunch,
+                remark
+            };
+
+            const result = calculateDutyForDate(currentEditDateStr, tempEntry);
+
+            document.getElementById('modalCalcDuration').textContent = formatMinutes(result.effectiveMinutes);
+            document.getElementById('modalCalcDuty').textContent = `${result.dutyCount} दिन (${result.labelText})`;
+            document.getElementById('modalCalcOT').textContent = formatMinutes(result.otMinutes);
+        }
+
+        document.getElementById('labelStatusWork')?.addEventListener('click', () => handleStatusTypeChange('worked'));
+        document.getElementById('labelStatusHoliday')?.addEventListener('click', () => handleStatusTypeChange('holiday'));
+        document.getElementById('labelStatusPaidOff')?.addEventListener('click', () => handleStatusTypeChange('paid_off'));
+        document.getElementById('labelStatusAbsent')?.addEventListener('click', () => handleStatusTypeChange('absent'));
+
+        document.getElementById('timeIn')?.addEventListener('input', updateModalLiveCalculation);
+        document.getElementById('timeOut')?.addEventListener('input', updateModalLiveCalculation);
+        document.getElementById('entryRemark')?.addEventListener('input', updateModalLiveCalculation);
+        document.getElementById('deductLunchToggle')?.addEventListener('change', updateModalLiveCalculation);
+
+        document.getElementById('presetFullDayBtn')?.addEventListener('click', () => {
+            handleStatusTypeChange('worked');
+            document.getElementById('timeIn').value = '09:00';
+            document.getElementById('timeOut').value = '17:30';
+            document.getElementById('deductLunchToggle').checked = true;
+            updateModalLiveCalculation();
+        });
+
+        document.getElementById('preset12hBtn')?.addEventListener('click', () => {
+            handleStatusTypeChange('worked');
+            document.getElementById('timeIn').value = '08:00';
+            document.getElementById('timeOut').value = '20:30';
+            document.getElementById('deductLunchToggle').checked = true;
+            updateModalLiveCalculation();
+        });
+
+        document.getElementById('presetNightBtn')?.addEventListener('click', () => {
+            handleStatusTypeChange('worked');
+            document.getElementById('timeIn').value = '20:00';
+            document.getElementById('timeOut').value = '04:00';
+            document.getElementById('deductLunchToggle').checked = false;
+            updateModalLiveCalculation();
+        });
+
+        document.getElementById('presetHalfDayBtn')?.addEventListener('click', () => {
+            handleStatusTypeChange('worked');
+            document.getElementById('timeIn').value = '09:00';
+            document.getElementById('timeOut').value = '13:00';
+            document.getElementById('deductLunchToggle').checked = false;
+            updateModalLiveCalculation();
+        });
+
+        document.getElementById('presetClearBtn')?.addEventListener('click', () => {
+            document.getElementById('timeIn').value = '';
+            document.getElementById('timeOut').value = '';
+            updateModalLiveCalculation();
+        });
+
+        function closeDutyModal() {
+            document.getElementById('entryModal')?.classList.add('hidden');
+            currentEditDateStr = null;
+        }
+
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeDutyModal);
+        document.getElementById('modalCancelBtn')?.addEventListener('click', closeDutyModal);
+
+        document.getElementById('modalSaveBtn')?.addEventListener('click', () => {
+            if (!currentEditDateStr) return;
+
+            const statusType = getSelectedDayStatus();
+            const inTime = document.getElementById('timeIn')?.value || '';
+            const outTime = document.getElementById('timeOut')?.value || '';
+            const remark = document.getElementById('entryRemark')?.value.trim() || '';
+            const deductLunch = document.getElementById('deductLunchToggle')?.checked !== false;
+
+            const isSunday = (new Date(currentEditDateStr + "T00:00:00").getDay() === 0);
+
+            if (isSunday && statusType === 'paid_off' && !inTime && !outTime && !remark) {
+                delete window.dutyRecords[currentEditDateStr];
+            } else if (!isSunday && statusType === 'worked' && !inTime && !outTime && !remark) {
+                delete window.dutyRecords[currentEditDateStr];
+            } else {
+                window.dutyRecords[currentEditDateStr] = {
+                    statusType,
+                    inTime: statusType === 'worked' ? inTime : '',
+                    outTime: statusType === 'worked' ? outTime : '',
+                    deductLunch,
+                    remark
+                };
+            }
+
+            window.saveRecordsLocal();
+            closeDutyModal();
+            window.renderApp();
+            window.showToast('रिकॉर्ड सुरक्षित किया गया!');
+        });
+
+        document.getElementById('fabTodayBtn')?.addEventListener('click', () => {
+            window.openDutyModal(realTodayStr);
+        });
+
+        // Excel Export (Updated with Full Breakdown & Advances)
+        document.getElementById('exportExcelBtn')?.addEventListener('click', () => {
+            const m = window.latestMonthMetrics;
+            if (!m) return;
+
+            const rows = [];
+            rows.push(["श्रमिक प्रो - मासिक ड्यूटी व वेतन रिपोर्ट (Powered by Anuraj)"]);
+            rows.push([`कर्मचारी: ${window.appSettings.workerName || 'स्वयं'}`, `पद: ${window.appSettings.workerRole || '-'}`, `कंपनी: ${window.appSettings.companyName || '-'}`]);
+            rows.push([`माह: ${m.monthName} ${m.year} (${m.daysCount} दिन)`]);
+            rows.push([]);
+            rows.push(["तारीख", "वार", "आने का समय", "जाने का समय", "कार्य अवधि", "ड्यूटी गणना", "ओवरटाइम", "विवरण"]);
+
+            m.monthRowsForPDF.forEach(r => {
+                rows.push([
+                    `${r.day} ${m.monthName}`,
+                    r.dayName,
+                    r.inTime,
+                    r.outTime,
+                    r.duration,
+                    r.dutyCount,
+                    r.otText,
+                    r.remark
+                ]);
+            });
+
+            rows.push([]);
+            rows.push(["--- संपूर्ण वेतन विवरण (Salary Breakdown) ---"]);
+            rows.push(["प्रति दिन दर", formatCurrencyWithPaise(m.perDayRate)]);
+            rows.push(["कार्य ड्यूटी कमाई", formatCurrencyWithPaise(m.workEarnings)]);
+            rows.push(["कंपनी छुट्टी भुगतान", formatCurrencyWithPaise(m.holidayEarnings)]);
+            rows.push(["रविवार सवेतन लाभ", formatCurrencyWithPaise(m.sundayEarnings)]);
+            rows.push(["ओवरटाइम कमाई", formatCurrencyWithPaise(m.otEarnings)]);
+            rows.push(["भत्ता / बोनस", formatCurrencyWithPaise(m.allowance)]);
+            rows.push(["कुल सकल वेतन (Gross Salary)", formatCurrencyWithPaise(m.grossSalary)]);
+            rows.push(["मासिक एडवांस कटौती", `-${formatCurrencyWithPaise(m.advanceTotal)}`]);
+            rows.push(["PF/ESI व अन्य कटौती", `-${formatCurrencyWithPaise(m.pfDeduction + m.otherDeduction)}`]);
+            rows.push(["शुद्ध देय वेतन (Net In-Hand Pay)", formatCurrencyWithPaise(m.netInHandSalary)]);
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Payroll_Report");
+            XLSX.writeFile(wb, `Shramik_Pro_${m.monthName}_${m.year}.xlsx`);
+            window.showToast('Excel फाइल डाउनलोड हो गई!');
+        });
+
+        // Backup & Restore Handlers
+        document.getElementById('openBackupModalBtn')?.addEventListener('click', () => {
+            document.getElementById('backupModal')?.classList.remove('hidden');
+        });
+        document.getElementById('closeBackupModalBtn')?.addEventListener('click', () => {
+            document.getElementById('backupModal')?.classList.add('hidden');
+        });
+        document.getElementById('closeBackupFooterBtn')?.addEventListener('click', () => {
+            document.getElementById('backupModal')?.classList.add('hidden');
+        });
+
+        document.getElementById('downloadBackupBtn')?.addEventListener('click', () => {
+            const backupData = {
+                app: "Shramik Pro - Powered by Anuraj",
+                version: "5.0-pro",
+                exportedAt: new Date().toISOString(),
+                dutyRecords: window.dutyRecords,
+                advanceRecords: window.advanceRecords,
+                appSettings: window.appSettings
+            };
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Shramik_Pro_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            window.showToast('ऑफलाइन बैकअप फाइल डाउनलोड हो गई!');
+        });
+
+        document.getElementById('triggerRestoreBtn')?.addEventListener('click', () => {
+            document.getElementById('restoreFileInput')?.click();
+        });
+
+        document.getElementById('restoreFileInput')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.dutyRecords) window.dutyRecords = { ...window.dutyRecords, ...data.dutyRecords };
+                    if (data.advanceRecords) window.advanceRecords = data.advanceRecords;
+                    if (data.appSettings) window.appSettings = { ...window.appSettings, ...data.appSettings };
+                    window.saveRecordsLocal();
+                    window.saveSettingsLocal();
+                    window.renderApp();
+                    document.getElementById('backupModal')?.classList.add('hidden');
+                    window.showToast('डेटा सफलतापूर्वक रिस्टोर हो गया!');
+                } catch (err) {
+                    window.showToast('अमान्य बैकअप फाइल।');
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // Month Navigation
+        document.getElementById('prevMonthBtn')?.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            window.renderApp();
+        });
+
+        document.getElementById('nextMonthBtn')?.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            window.renderApp();
+        });
+
+        // Quick Auto Fill
+        function runQuickFill() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let filledCount = 0;
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dateObj = new Date(year, month, day);
+
+                if (dateStr <= realTodayStr && dateObj.getDay() !== 0) {
+                    window.dutyRecords[dateStr] = {
+                        statusType: 'worked',
+                        inTime: '09:00',
+                        outTime: '17:30',
+                        deductLunch: true,
+                        remark: 'फुल डे ड्यूटी (8h)'
+                    };
+                    filledCount++;
+                }
+            }
+
+            window.saveRecordsLocal();
+            window.renderApp();
+            window.showToast(`${filledCount} कार्यदिवसों में 9:00 से 5:30 भर दिया गया!`);
+        }
+
+        document.getElementById('quickFillMonthBtn')?.addEventListener('click', runQuickFill);
+        document.getElementById('quickFillDesktopBtn')?.addEventListener('click', runQuickFill);
+
+        // Clear Current Month
+        document.getElementById('clearMonthBtn')?.addEventListener('click', () => {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                delete window.dutyRecords[dateStr];
+            }
+
+            window.saveRecordsLocal();
+            window.renderApp();
+            window.showToast('इस माह का रिकॉर्ड रीसेट कर दिया गया!');
+        });
+
+        // Settings Modal Logic
+        const settingsModal = document.getElementById('settingsModal');
+        const salaryTypeSelect = document.getElementById('salaryTypeSelect');
+        const monthlyRateGroup = document.getElementById('monthlyRateGroup');
+        const dailyRateGroup = document.getElementById('dailyRateGroup');
+        const autoCalcOtCheckbox = document.getElementById('autoCalcOtCheckbox');
+        const hourlyOtRateInput = document.getElementById('hourlyOtRate');
+
+        function toggleSalaryInputs() {
+            if (salaryTypeSelect.value === 'monthly') {
+                monthlyRateGroup?.classList.remove('hidden');
+                dailyRateGroup?.classList.add('hidden');
+            } else {
+                monthlyRateGroup?.classList.add('hidden');
+                dailyRateGroup?.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('openSalarySettingsBtn')?.addEventListener('click', () => {
+            const workerNameEl = document.getElementById('workerNameInput');
+            const workerRoleEl = document.getElementById('workerRoleInput');
+            const companyNameEl = document.getElementById('companyNameInput');
+            const baseMonthlyEl = document.getElementById('baseMonthlySalary');
+            const baseDailyEl = document.getElementById('baseDailyRate');
+            const fullBonusEl = document.getElementById('fullMonthBonusInput');
+            const bonusModeEl = document.getElementById('bonusModeSelect');
+            const allowEl = document.getElementById('monthlyAllowanceInput');
+            const pfEl = document.getElementById('pfDeductionInput');
+            const otherEl = document.getElementById('otherDeductionInput');
+
+            if (workerNameEl) workerNameEl.value = window.appSettings.workerName || '';
+            if (workerRoleEl) workerRoleEl.value = window.appSettings.workerRole || '';
+            if (companyNameEl) companyNameEl.value = window.appSettings.companyName || '';
+
+            if (salaryTypeSelect) salaryTypeSelect.value = window.appSettings.salaryType || 'monthly';
+            if (baseMonthlyEl) baseMonthlyEl.value = window.appSettings.baseMonthlySalary || 18000;
+            if (baseDailyEl) baseDailyEl.value = window.appSettings.baseDailyRate || 700;
+
+            if (fullBonusEl) fullBonusEl.value = window.appSettings.fullMonthBonusAmount ?? 1000;
+            if (bonusModeEl) bonusModeEl.value = window.appSettings.bonusMode || 'manual_off';
+
+            if (allowEl) allowEl.value = window.appSettings.monthlyAllowance || 0;
+            if (pfEl) pfEl.value = window.appSettings.pfDeduction || 0;
+            if (otherEl) otherEl.value = window.appSettings.otherDeduction || 0;
+
+            const isAuto = window.appSettings.autoCalcOt !== false;
+            if (autoCalcOtCheckbox) autoCalcOtCheckbox.checked = isAuto;
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daily = window.appSettings.salaryType === 'monthly' 
+                ? (Number(window.appSettings.baseMonthlySalary) / daysInMonth) 
+                : Number(window.appSettings.baseDailyRate);
+
+            if (hourlyOtRateInput) {
+                if (isAuto) {
+                    hourlyOtRateInput.value = (daily / 8.0).toFixed(2);
+                    hourlyOtRateInput.disabled = true;
+                } else {
+                    hourlyOtRateInput.value = Number(window.appSettings.hourlyOtRate || (daily / 8.0)).toFixed(2);
+                    hourlyOtRateInput.disabled = false;
+                }
+            }
+
+            toggleSalaryInputs();
+            settingsModal?.classList.remove('hidden');
+        });
+
+        autoCalcOtCheckbox?.addEventListener('change', (e) => {
+            const isAuto = e.target.checked;
+            hourlyOtRateInput.disabled = isAuto;
+            if (isAuto) {
+                const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+                const daily = salaryTypeSelect.value === 'monthly' 
+                    ? (Number(document.getElementById('baseMonthlySalary').value) / daysInMonth) 
+                    : Number(document.getElementById('baseDailyRate').value);
+                hourlyOtRateInput.value = (daily / 8.0).toFixed(2);
+            }
+        });
+
+        salaryTypeSelect?.addEventListener('change', toggleSalaryInputs);
+        document.getElementById('closeSettingsModalBtn')?.addEventListener('click', () => settingsModal?.classList.add('hidden'));
+        document.getElementById('cancelSettingsBtn')?.addEventListener('click', () => settingsModal?.classList.add('hidden'));
+
+        document.getElementById('saveSettingsBtn')?.addEventListener('click', () => {
+            window.appSettings.workerName = document.getElementById('workerNameInput')?.value.trim() || '';
+            window.appSettings.workerRole = document.getElementById('workerRoleInput')?.value.trim() || '';
+            window.appSettings.companyName = document.getElementById('companyNameInput')?.value.trim() || '';
+
+            window.appSettings.salaryType = salaryTypeSelect.value;
+            window.appSettings.baseMonthlySalary = Number(document.getElementById('baseMonthlySalary').value) || 0;
+            window.appSettings.baseDailyRate = Number(document.getElementById('baseDailyRate').value) || 0;
+            window.appSettings.autoCalcOt = autoCalcOtCheckbox.checked;
+            window.appSettings.hourlyOtRate = Number(hourlyOtRateInput.value) || 0;
+
+            window.appSettings.fullMonthBonusAmount = Number(document.getElementById('fullMonthBonusInput').value) || 0;
+            window.appSettings.bonusMode = document.getElementById('bonusModeSelect').value || 'manual_off';
+
+            window.appSettings.monthlyAllowance = Number(document.getElementById('monthlyAllowanceInput').value) || 0;
+            window.appSettings.pfDeduction = Number(document.getElementById('pfDeductionInput').value) || 0;
+            window.appSettings.otherDeduction = Number(document.getElementById('otherDeductionInput').value) || 0;
+
+            window.saveSettingsLocal();
+            settingsModal?.classList.add('hidden');
+            window.renderApp();
+            window.showToast('प्रोफाइल, बोनस व वेतन सेटिंग्स सेव हो गईं!');
+        });
+
+        let toastTimeout;
+        window.showToast = function(message) {
+            const toast = document.getElementById('customToast');
+            if (!toast) return;
+            document.getElementById('toastMessage').textContent = message;
+
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('advDateInput').value = realTodayStr;
+            window.loadSavedData();
+            window.renderApp();
+        });
+    </script>
+</body>
+</html>
